@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fittracker/models/user.dart';
 import 'package:fittracker/services/auth.dart';
 import 'package:flutter/material.dart';
 
@@ -24,7 +25,7 @@ class _SignInState extends State<SignIn> {
         padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 50.0),
         child: TextButton(
             onPressed: () async{
-               User? result = await _auth.signInAnon();
+               MyUser? result = await _auth.signInAnon();
                 if (result == null) {
                   print('error signing in');
                 } else {
