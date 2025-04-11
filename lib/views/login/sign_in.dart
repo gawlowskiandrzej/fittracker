@@ -45,14 +45,14 @@ class _SignInState extends State<SignIn> {
               const SizedBox(height: 20.0),
               ElevatedButton(
                 onPressed: () async {
-                  //print('Email: $email, Password: $password');
-                  await _auth.signInAnon();
-                  // dynamic result = await _auth.signInWithEmailAndPassword('email', 'password');
-                  // if (result == null) {
-                  //   print('Error signing in');
-                  // } else {
-                  //   print('Signed in as ${result.uid}');
-                  // }
+                  print('Email: $email, Password: $password');
+                  //await _auth.signInAnon();
+                  dynamic result = await _auth.signInWithEmailAndPassword('email', 'password');
+                  if (result == null) {
+                    print('Error signing in');
+                  } else {
+                    print('Signed in as ${result.uid}');
+                  }
                 },
                 child: const Text('Sign In'),
               ),
