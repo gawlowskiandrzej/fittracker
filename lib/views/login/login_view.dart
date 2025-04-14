@@ -1,3 +1,4 @@
+import 'package:fittracker/views/login/register.dart';
 import 'package:fittracker/views/login/sign_in.dart';
 import 'package:flutter/material.dart';
 
@@ -9,9 +10,18 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
+
+  bool showSignIn = true;
+  void toggleView() {
+    setState(() => showSignIn = !showSignIn);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: SignIn(),
-  );}
+    if (showSignIn) {
+      return SignIn(toggleView: toggleView);
+    } else {
+      return Register(toggleView: toggleView);
+    }
+  }
 }

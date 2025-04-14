@@ -2,7 +2,9 @@ import 'package:fittracker/services/auth.dart';
 import 'package:flutter/material.dart';
 
 class Register extends StatefulWidget {
-  const Register({super.key});
+  const Register({required this.toggleView});
+
+  final Function? toggleView;
 
   @override
   State<Register> createState() => _RegisterState();
@@ -22,6 +24,15 @@ class _RegisterState extends State<Register> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Register'),
+          actions: <Widget>[
+          TextButton.icon(
+            icon: const Icon(Icons.person),
+            label: const Text('Sign In'),
+            onPressed: () {
+                widget.toggleView!();
+            },
+          ),
+        ],
           elevation: 0.0,
         ),
         body: Container(
@@ -51,7 +62,7 @@ class _RegisterState extends State<Register> {
                     if (_formKey.currentState!.validate()) {
                       print('Email: $email, Password: $password');
                       //await _auth.signInAnon();
-                      dynamic result = await _auth.signInWithEmailAndPassword(email!, password!);
+                      dynamic result = await _auth.registerWithEmailAndPassword(email!, password!);
                       if (result == null) {
                         print('Error signing in');
                       } else {

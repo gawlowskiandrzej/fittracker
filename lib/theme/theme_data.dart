@@ -16,7 +16,11 @@ final ThemeData appTheme = ThemeData(
     foregroundColor: AppColors.text,
     iconTheme: IconThemeData(color: AppColors.text),
   ),
-
+  textButtonTheme: TextButtonThemeData(
+    style: TextButton.styleFrom(
+      foregroundColor: AppColors.background,
+    ),
+  ),
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
       backgroundColor: AppColors.primary,

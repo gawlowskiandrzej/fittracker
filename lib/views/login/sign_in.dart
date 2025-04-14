@@ -1,10 +1,10 @@
-import 'package:fittracker/models/user.dart';
 import 'package:fittracker/services/auth.dart';
-import 'package:fittracker/theme/colors.dart';
 import 'package:flutter/material.dart';
 
 class SignIn extends StatefulWidget {
-  const SignIn({super.key});
+  const SignIn({required this.toggleView});
+
+  final Function? toggleView;
 
   @override
   State<SignIn> createState() => _SignInState();
@@ -21,6 +21,15 @@ class _SignInState extends State<SignIn> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sign In'),
+        actions: <Widget>[
+          TextButton.icon(
+            icon: const Icon(Icons.person),
+            label: const Text('Register'),
+            onPressed: () {
+                widget.toggleView!();
+            },
+          ),
+        ],
         elevation: 0.0,
       ),
       body: Container(
@@ -47,7 +56,7 @@ class _SignInState extends State<SignIn> {
                 onPressed: () async {
                   print('Email: $email, Password: $password');
                   //await _auth.signInAnon();
-                  dynamic result = await _auth.signInWithEmailAndPassword('email', 'password');
+                  dynamic result = await _auth.signInWithEmailAndPassword(email!, password!);
                   if (result == null) {
                     print('Error signing in');
                   } else {

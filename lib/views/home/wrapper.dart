@@ -1,6 +1,8 @@
 import 'package:fittracker/models/user.dart';
 import 'package:fittracker/views/home/home.dart';
 import 'package:fittracker/views/login/login_view.dart';
+import 'package:fittracker/views/login/register.dart';
+import 'package:fittracker/views/login/sign_in.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
