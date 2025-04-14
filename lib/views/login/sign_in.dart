@@ -1,4 +1,5 @@
 import 'package:fittracker/services/auth.dart';
+import 'package:fittracker/share/constants.dart';
 import 'package:flutter/material.dart';
 
 class SignIn extends StatefulWidget {
@@ -12,13 +13,14 @@ class SignIn extends StatefulWidget {
 
 class _SignInState extends State<SignIn> {
   final AuthService _auth = AuthService();
+  bool isLoading = false;
 
   String? email = "";
   String? password = "";
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return isLoading ? Loading()  : Scaffold(
       appBar: AppBar(
         title: const Text('Sign In'),
         actions: <Widget>[
@@ -56,11 +58,14 @@ class _SignInState extends State<SignIn> {
                 onPressed: () async {
                   print('Email: $email, Password: $password');
                   //await _auth.signInAnon();
+                  setState(() => isLoading = true);
                   dynamic result = await _auth.signInWithEmailAndPassword(email!, password!);
                   if (result == null) {
                     print('Error signing in');
+                    setState(() => isLoading = false);
                   } else {
                     print('Signed in as ${result.uid}');
+                    setState(() => isLoading = false);
                   }
                 },
                 child: const Text('Sign In'),

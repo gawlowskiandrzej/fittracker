@@ -1,4 +1,5 @@
 import 'package:fittracker/services/auth.dart';
+import 'package:fittracker/share/constants.dart';
 import 'package:flutter/material.dart';
 
 class Register extends StatefulWidget {
@@ -14,13 +15,13 @@ class _RegisterState extends State<Register> {
 
   final AuthService _auth = AuthService();
   final _formKey = GlobalKey<FormState>();
-
+  bool isLoading = false;
   String? email = "";
   String? password = "";
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return isLoading ? Loading() : Container(
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Register'),
@@ -62,11 +63,14 @@ class _RegisterState extends State<Register> {
                     if (_formKey.currentState!.validate()) {
                       print('Email: $email, Password: $password');
                       //await _auth.signInAnon();
+                      setState(() => isLoading = true);
                       dynamic result = await _auth.registerWithEmailAndPassword(email!, password!);
                       if (result == null) {
                         print('Error signing in');
+                        setState(() => isLoading = false);
                       } else {
                         print('Signed in as ${result.uid}');
+                        setState(() => isLoading = false);
                       }
                     }
                   }, 
