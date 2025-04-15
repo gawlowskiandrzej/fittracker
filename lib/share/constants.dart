@@ -34,7 +34,7 @@ class _LoadingState extends State<Loading>
       body: Center(
         child: RotationTransition(
           turns: _controller,
-          child: Container(
+          child: SizedBox(
             width: 60,
             height: 60,
             child: const Icon(

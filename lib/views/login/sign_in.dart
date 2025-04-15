@@ -3,7 +3,7 @@ import 'package:fittracker/share/constants.dart';
 import 'package:flutter/material.dart';
 
 class SignIn extends StatefulWidget {
-  const SignIn({required this.toggleView});
+  const SignIn({super.key, required this.toggleView});
 
   final Function? toggleView;
 
