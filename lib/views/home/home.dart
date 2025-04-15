@@ -1,14 +1,11 @@
-import 'package:fittracker/models/activity.dart';
 import 'package:fittracker/services/auth.dart';
-import 'package:fittracker/services/database.dart';
 import 'package:fittracker/theme/colors.dart';
-import 'package:fittracker/theme/theme_data.dart';
-import 'package:fittracker/views/home/recent_activity_tile.dart';
+import 'package:fittracker/views/activity/acitvity_list.dart';
 import 'package:fittracker/views/home/recent_avtivity_list.dart';
 import 'package:flutter/material.dart';
 
 class Home extends StatefulWidget {
-  Home({super.key});
+  const Home({super.key});
 
   @override
   State<Home> createState() => _HomeState();
@@ -18,12 +15,11 @@ class _HomeState extends State<Home> {
   int myIndex = 0;
 
   final AuthService _auth = AuthService();
-  final DatabaseService _databaseService = DatabaseService();
   final PageController _pageController = PageController();
 
   List<Widget> pages = [
     RecentActivitiesList(),
-    const Center(child: Text('Activities')),
+    AcitvityList(),
     const Center(child: Text('Statistics')),
   ];
 

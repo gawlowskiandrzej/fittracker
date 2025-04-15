@@ -12,13 +12,13 @@ final ThemeData appTheme = ThemeData(
     titleMedium: TextStyle(color: AppColors.text),
   ),
   appBarTheme: AppBarTheme(
-    backgroundColor: AppColors.secondary,
+    backgroundColor: AppColors.background,
     foregroundColor: AppColors.text,
     iconTheme: IconThemeData(color: AppColors.text),
   ),
   textButtonTheme: TextButtonThemeData(
     style: TextButton.styleFrom(
-      foregroundColor: AppColors.background,
+      foregroundColor: AppColors.text,
     ),
   ),
   elevatedButtonTheme: ElevatedButtonThemeData(
