@@ -1,4 +1,5 @@
 class MyUser{
   final String uid;
-  MyUser({required this.uid});
+  final String email;
+  MyUser({required this.uid, required this.email});
 }

@@ -1,14 +1,31 @@
 import 'package:fittracker/models/activity.dart';
 import 'package:fittracker/services/auth.dart';
 import 'package:fittracker/services/database.dart';
+import 'package:fittracker/theme/colors.dart';
+import 'package:fittracker/theme/theme_data.dart';
 import 'package:fittracker/views/home/recent_activity_tile.dart';
+import 'package:fittracker/views/home/recent_avtivity_list.dart';
 import 'package:flutter/material.dart';
 
-class Home extends StatelessWidget {
+class Home extends StatefulWidget {
   Home({super.key});
+
+  @override
+  State<Home> createState() => _HomeState();
+}
+
+class _HomeState extends State<Home> {
+  int myIndex = 0;
 
   final AuthService _auth = AuthService();
   final DatabaseService _databaseService = DatabaseService();
+  final PageController _pageController = PageController();
+
+  List<Widget> pages = [
+    RecentActivitiesList(),
+    const Center(child: Text('Activities')),
+    const Center(child: Text('Statistics')),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -26,33 +43,44 @@ class Home extends StatelessWidget {
           ),
         ],
       ),
-      body: FutureBuilder<List<Activity>>(
-        future: _databaseService.fetchRecentActivities(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (snapshot.hasError) {
-            return Center(child: Text('Wystąpił błąd podczas ładowania aktywności. ${snapshot.error.toString()}'));
-          }
-
-          final activities = snapshot.data ?? [];
-
-          if (activities.isEmpty) {
-            return const Center(child: Text('Brak ostatnich aktywności.'));
-          }
-
-          return ListView.builder(
-            itemCount: activities.length,
-            itemBuilder: (context, index) {
-              final activity = activities[index];
-              return RecentActivityTile(
-                activity: activity,
-              );
-            },
-          );
+       body: PageView(
+        controller: _pageController,
+        onPageChanged: (index) {
+          setState(() {
+            myIndex = index;
+          });
         },
+        children: pages),
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: AppColors.secondary,
+        unselectedItemColor: AppColors.background,
+        selectedItemColor: AppColors.text,
+        type: BottomNavigationBarType.fixed,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.fitness_center),
+            label: 'Activities',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.bar_chart),
+            label: 'Statistics',
+          ),
+        ],
+        currentIndex: myIndex,
+        onTap: (index) {
+        setState(() {
+          myIndex = index;
+        });
+        _pageController.animateToPage(
+          index,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      },
       ),
     );
   }

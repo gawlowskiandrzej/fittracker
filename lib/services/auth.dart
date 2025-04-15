@@ -10,7 +10,7 @@ class AuthService{
   }
 
   MyUser _userFromFirebaseUser(User? user) {
-    return user != null ? MyUser(uid: user.uid) : MyUser(uid: "-1");
+    return user != null ? MyUser(uid: user.uid, email: user.email!) : MyUser(uid: "-1", email: "null");
   }
 
   // sign in anon
