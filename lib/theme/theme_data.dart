@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'colors.dart'; // zakładam że masz ten plik z paletą
 
 final ThemeData appTheme = ThemeData(
   scaffoldBackgroundColor: AppColors.background, // tło dla Scaffoldów
   primaryColor: AppColors.primary,
 
-  textTheme: TextTheme(
-    bodyLarge: TextStyle(color: AppColors.text),
-    bodyMedium: TextStyle(color: AppColors.text),
-    titleLarge: TextStyle(color: AppColors.text),
-    titleMedium: TextStyle(color: AppColors.text),
+  textTheme: GoogleFonts.abelTextTheme().apply(
+    bodyColor: AppColors.text,
+    displayColor: AppColors.text,
   ),
   appBarTheme: AppBarTheme(
     backgroundColor: AppColors.background,

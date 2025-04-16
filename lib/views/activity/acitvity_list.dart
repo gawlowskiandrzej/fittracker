@@ -1,39 +1,44 @@
+import 'package:fittracker/models/activity_list_item.dart';
+import 'package:fittracker/views/activity/acitivity_widget.dart';
 import 'package:flutter/material.dart';
 
 class AcitvityList extends StatelessWidget {
   const AcitvityList({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Column(
+Widget build(BuildContext context) {
+  final activities = ActivityListItem.activityList;
+
+  return Scaffold(
+    body: Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        const Text(
-          'Chose activity',
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
+        const Padding(
+          padding: EdgeInsets.all(12.0),
+          child: Text(
+            "Choose activity",
+            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
           ),
         ),
-        const SizedBox(height: 16),
         Expanded(
-          child: ListView.builder(
-            itemCount: 10, // Replace with your activity count
-            itemBuilder: (context, index) {
-              return ListTile(
-                title: Text('Aktywność ${index + 1}'),
-                subtitle: Text('Szczegóły aktywności ${index + 1}'),
-                trailing: IconButton(
-                  icon: const Icon(Icons.arrow_forward),
-                  onPressed: () {
-                    // Handle navigation to activity details
-                  },
-                ),
-              );
-            },
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: GridView.builder(
+              itemCount: activities.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 0.9,
+              ),
+              itemBuilder: (context, index) {
+                return ActivityWidget(activity: activities[index]);
+              },
+            ),
           ),
         ),
       ],
-    );
-  }
+    ),
+  );
+}
 }
