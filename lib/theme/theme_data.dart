@@ -16,9 +16,7 @@ final ThemeData appTheme = ThemeData(
     iconTheme: IconThemeData(color: AppColors.text),
   ),
   textButtonTheme: TextButtonThemeData(
-    style: TextButton.styleFrom(
-      foregroundColor: AppColors.text,
-    ),
+    style: TextButton.styleFrom(foregroundColor: AppColors.text),
   ),
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
@@ -30,7 +28,14 @@ final ThemeData appTheme = ThemeData(
     hintStyle: TextStyle(color: AppColors.text),
     labelStyle: TextStyle(color: AppColors.text),
   ),
-  iconTheme: IconThemeData(
-    color: AppColors.text,
+  iconTheme: IconThemeData(color: AppColors.text),
+  listTileTheme: ListTileThemeData(
+    titleTextStyle: TextStyle(
+      color: AppColors.secondary,
+      fontSize: 16,
+      fontWeight: FontWeight.bold,
+    ),
+    iconColor: AppColors.text,
+    subtitleTextStyle: TextStyle(color: AppColors.text, fontSize: 12),
   ),
 );

@@ -2,6 +2,7 @@ import 'package:fittracker/services/auth.dart';
 import 'package:fittracker/theme/colors.dart';
 import 'package:fittracker/views/activity/acitvity_list.dart';
 import 'package:fittracker/views/home/recent_avtivity_list.dart';
+import 'package:fittracker/views/statistics/main.dart';
 import 'package:flutter/material.dart';
 
 class Home extends StatefulWidget {
@@ -17,11 +18,7 @@ class _HomeState extends State<Home> {
   final AuthService _auth = AuthService();
   final PageController _pageController = PageController();
 
-  List<Widget> pages = [
-    RecentActivitiesList(),
-    AcitvityList(),
-    const Center(child: Text('Statistics')),
-  ];
+  List<Widget> pages = [RecentActivitiesList(), AcitvityList(), MainStats()];
 
   @override
   Widget build(BuildContext context) {
@@ -39,24 +36,22 @@ class _HomeState extends State<Home> {
           ),
         ],
       ),
-       body: PageView(
+      body: PageView(
         controller: _pageController,
         onPageChanged: (index) {
           setState(() {
             myIndex = index;
           });
         },
-        children: pages),
+        children: pages,
+      ),
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: AppColors.secondary,
         unselectedItemColor: AppColors.background,
         selectedItemColor: AppColors.text,
         type: BottomNavigationBarType.fixed,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(
             icon: Icon(Icons.fitness_center),
             label: 'Activities',
@@ -68,15 +63,15 @@ class _HomeState extends State<Home> {
         ],
         currentIndex: myIndex,
         onTap: (index) {
-        setState(() {
-          myIndex = index;
-        });
-        _pageController.animateToPage(
-          index,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        );
-      },
+          setState(() {
+            myIndex = index;
+          });
+          _pageController.animateToPage(
+            index,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
+        },
       ),
     );
   }
