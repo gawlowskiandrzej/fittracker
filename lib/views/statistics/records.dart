@@ -30,6 +30,5 @@ class RecordStats extends StatelessWidget {
         ),
       ],
     );
-    ;
   }
 }

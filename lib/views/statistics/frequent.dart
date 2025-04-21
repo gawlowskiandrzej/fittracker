@@ -15,7 +15,7 @@ class FrequentStats extends StatelessWidget {
               sideTitles: SideTitles(
                 showTitles: true,
                 getTitlesWidget: (value, _) {
-                  const activityNames = ['Running', 'Cycle', 'Weightlifting'];
+                  const activityNames = ['Running', 'Cycling', 'Weightlifting'];
                   return Text(activityNames[value.toInt()]);
                 },
               ),

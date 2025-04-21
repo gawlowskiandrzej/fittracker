@@ -48,7 +48,7 @@ class _HomeState extends State<Home> {
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: AppColors.secondary,
         unselectedItemColor: AppColors.background,
-        selectedItemColor: AppColors.text,
+        selectedItemColor: Color(0xFFF9FFF9),
         type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
