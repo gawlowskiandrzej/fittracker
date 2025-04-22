@@ -1,15 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Activity {
-  final String id;
-  final String userId;
-  final int typeId;
-  final double distanceKm;
-  final int steps;
-  final int durationMinutes;
-  final DateTime startTime;
-  final DateTime endTime;
-  final String activityName;
+  String? id;
+  String? userId;
+  int? typeId;
+  double? distanceKm;
+  int? steps;
+  int? durationMinutes;
+  DateTime? startTime;
+  DateTime? endTime;
+  int? caloriesBurned;
+  String? activityName;
+
+
 
   Activity({
     required this.id,
@@ -20,8 +23,13 @@ class Activity {
     required this.startTime,
     required this.endTime,
     required this.userId,
+    required this.caloriesBurned,
     required this.activityName,
   });
+
+  Activity.empty(){
+    this.id = "-1";
+  }
 
   factory Activity.fromFirestore(
     Map<String, dynamic> data,
@@ -34,6 +42,7 @@ class Activity {
       typeId: data['type'] ?? 'unknown',
       distanceKm: (data['distanceKm'] ?? 0).toDouble(),
       steps: data['steps'] ?? 0,
+      caloriesBurned: data['caloriesBurned'] ?? 0,
       durationMinutes: data['durationMinutes'] ?? 0,
       startTime: (data['startTime'] as Timestamp).toDate(),
       endTime: (data['endTime'] as Timestamp).toDate(),

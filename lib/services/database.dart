@@ -102,4 +102,75 @@ class DatabaseService {
     }
     return daywithFrequency;
   }
+  Future<List<Activity?>> getStatistics() async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return [Activity.empty(), Activity.empty(), Activity.empty()];
+  final typesSnapshot = await activityTypesCollection.get();
+    activity_types = {
+      for (var doc in typesSnapshot.docs)
+        (doc.data() as Map<String, dynamic>)['id'].toString():
+            (doc.data() as Map<String, dynamic>)['type'] ?? 'Nieznany',
+    };
+
+
+  // Przygotowanie listy dla wyników
+  List<Activity?> activities = [];
+
+  // 1. Najdłuższa aktywność (na podstawie 'durationMinutes')
+      final longestActivitySnapshot = await activityCollection
+      .where('userId', isEqualTo: user.uid)
+      .orderBy('durationMinutes', descending: true)
+      .limit(1)
+      .get();
+
+  if (longestActivitySnapshot.docs.isNotEmpty) {
+    final doc = longestActivitySnapshot.docs.first;
+    final data = doc.data() as Map<String, dynamic>;
+    final typeId = data['type'].toString();
+    final typeName = activity_types[typeId] ?? 'Nieznany';
+    activities.add(Activity.fromFirestore(data, doc.id, typeName));
+  } else {
+    activities.add(null);
+  }
+
+
+  // 2. Najwięcej spalonych kalorii (na podstawie 'caloriesBurned')
+  final mostCaloriesBurnedSnapshot = await activityCollection
+      .where('userId', isEqualTo: user.uid)
+      .orderBy('caloriesBurned', descending: true)
+      .limit(1)
+      .get();
+
+
+  if (mostCaloriesBurnedSnapshot.docs.isNotEmpty) {
+    final doc = mostCaloriesBurnedSnapshot.docs.first;
+    final data = doc.data() as Map<String, dynamic>;
+    final typeId = data['type'].toString();
+    final typeName = activity_types[typeId] ?? 'Nieznany';
+    activities.add(Activity.fromFirestore(data, doc.id, typeName));
+  } else {
+    activities.add(null);
+  }
+
+  // 3. Najdalsza aktywność (na podstawie 'distanceKm')
+  final longestDistanceSnapshot = await activityCollection
+      .where('userId', isEqualTo: user.uid)
+      .orderBy('distanceKm', descending: true)
+      .limit(1)
+      .get();
+
+  if (longestDistanceSnapshot.docs.isNotEmpty) {
+    final doc = longestDistanceSnapshot.docs.first;
+    final data = doc.data() as Map<String, dynamic>;
+    final typeId = data['type'].toString();
+    final typeName = activity_types[typeId] ?? 'Nieznany';
+    activities.add(Activity.fromFirestore(data, doc.id, typeName));
+  } else {
+    activities.add(null);
+  }
+
+  // Zwrócenie listy aktywności
+  return activities;
+}
+
 }
