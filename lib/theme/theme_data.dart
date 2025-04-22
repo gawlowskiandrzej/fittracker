@@ -4,6 +4,7 @@ import 'colors.dart'; // zakładam że masz ten plik z paletą
 
 final ThemeData appTheme = ThemeData(
   scaffoldBackgroundColor: AppColors.background, // tło dla Scaffoldów
+  
   primaryColor: AppColors.primary,
 
   textTheme: GoogleFonts.abelTextTheme().apply(

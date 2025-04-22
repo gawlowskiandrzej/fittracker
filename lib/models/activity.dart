@@ -8,6 +8,7 @@ class Activity {
   final int steps;
   final int durationMinutes;
   final DateTime startTime;
+  final DateTime endTime;
   final String activityName;
 
   Activity({
@@ -17,6 +18,7 @@ class Activity {
     required this.steps,
     required this.durationMinutes,
     required this.startTime,
+    required this.endTime,
     required this.userId,
     required this.activityName,
   });
@@ -34,6 +36,7 @@ class Activity {
       steps: data['steps'] ?? 0,
       durationMinutes: data['durationMinutes'] ?? 0,
       startTime: (data['startTime'] as Timestamp).toDate(),
+      endTime: (data['endTime'] as Timestamp).toDate(),
       activityName: activity,
     );
   }

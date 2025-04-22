@@ -8,8 +8,7 @@ class Loading extends StatefulWidget {
   State<Loading> createState() => _LoadingState();
 }
 
-class _LoadingState extends State<Loading>
-    with SingleTickerProviderStateMixin {
+class _LoadingState extends State<Loading> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override
@@ -29,19 +28,16 @@ class _LoadingState extends State<Loading>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color.fromARGB(255, 0, 0, 0),
-      body: Center(
-        child: RotationTransition(
-          turns: _controller,
-          child: SizedBox(
-            width: 60,
-            height: 60,
-            child: const Icon(
-              Icons.sync,
-              size: 50,
-              color: AppColors.secondary,
-            ),
+    return Center( // Używamy Center, zamiast Scaffold
+      child: RotationTransition(
+        turns: _controller,
+        child: SizedBox(
+          width: 60,
+          height: 60,
+          child: const Icon(
+            Icons.sync,
+            size: 50,
+            color: AppColors.secondary,
           ),
         ),
       ),

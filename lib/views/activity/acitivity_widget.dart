@@ -1,4 +1,3 @@
-import 'package:fittracker/main.dart';
 import 'package:fittracker/models/activity_list_item.dart';
 import 'package:fittracker/theme/colors.dart';
 import 'package:flutter/material.dart';

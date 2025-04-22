@@ -1,3 +1,4 @@
+import 'package:fittracker/share/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:fittracker/models/activity.dart';
 import 'package:fittracker/services/database.dart';
@@ -14,13 +15,13 @@ class RecentActivitiesList extends StatelessWidget {
       future: _databaseService.fetchRecentActivities(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const Loading();
         }
 
         if (snapshot.hasError) {
           return Center(
             child: Text(
-              'Wystąpił błąd podczas ładowania aktywności. ${snapshot.error.toString()}',
+              'An error occured ${snapshot.error.toString()}',
             ),
           );
         }
@@ -28,7 +29,7 @@ class RecentActivitiesList extends StatelessWidget {
         final activities = snapshot.data ?? [];
 
         if (activities.isEmpty) {
-          return const Center(child: Text('Brak ostatnich aktywności.'));
+          return const Center(child: Text('No recent activities'));
         }
 
         return ListView.builder(
