@@ -4,14 +4,20 @@ import 'package:flutter/material.dart';
 
 class ActivityWidget extends StatelessWidget {
   final ActivityListItem activity;
+  final dynamic activityWidget;
 
-  const ActivityWidget({super.key, required this.activity});
+  const ActivityWidget({super.key, required this.activity, required this.activityWidget});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // Tu możesz dodać np. nawigację do szczegółów aktywności
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => activityWidget,
+          ),
+        );
       },
       child: Card(
         elevation: 3,

@@ -48,7 +48,7 @@ class RecordStats extends StatelessWidget {
           titleTextStyle: TextStyle(color: AppColors.secondary),
         ),
         ListTile(
-          leading: Icon(Icons.streetview),
+          leading: Icon(Icons.add_road),
           title: Text('The longest traning distance'),
           subtitle: Text('${longestDistance?.distanceKm} – ${longestDistance?.activityName} – ${longestDistance?.endTime}'),
           titleTextStyle: TextStyle(color: AppColors.secondary),

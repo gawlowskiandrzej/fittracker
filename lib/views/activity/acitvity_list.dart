@@ -8,7 +8,7 @@ class AcitvityList extends StatelessWidget {
   @override
 Widget build(BuildContext context) {
   final activities = ActivityListItem.activityList;
-
+  final activityWidgets = ActivityListItem.activityWidgets;
   return Scaffold(
     body: Column(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -32,7 +32,7 @@ Widget build(BuildContext context) {
                 childAspectRatio: 0.9,
               ),
               itemBuilder: (context, index) {
-                return ActivityWidget(activity: activities[index]);
+                return ActivityWidget(activity: activities[index], activityWidget: activityWidgets[index]);
               },
             ),
           ),

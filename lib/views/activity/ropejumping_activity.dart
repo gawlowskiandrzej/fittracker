@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-class CyclingWidget extends StatelessWidget {
-  const CyclingWidget({super.key});
+class RoperJumpingWidget extends StatelessWidget {
+  const RoperJumpingWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Cycling Activity'),
+        title: Text('Rope Jumping Activity'),
       ),
       body: Center(
         child: Container(
@@ -16,7 +16,7 @@ class CyclingWidget extends StatelessWidget {
       ),
       child: Center(
         child: Text(
-          'Cycling Activity',
+          'Rope Jumping Activity',
           style: TextStyle(color: Colors.white, fontSize: 20),
         ),
         ),

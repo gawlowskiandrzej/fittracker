@@ -1,3 +1,7 @@
+import 'package:fittracker/views/activity/cycling_activity.dart';
+import 'package:fittracker/views/activity/ropejumping_activity.dart';
+import 'package:fittracker/views/activity/running_activity.dart';
+import 'package:fittracker/views/activity/weighlifting_activity.dart';
 import 'package:flutter/material.dart';
 
 class ActivityListItem {
@@ -28,10 +32,10 @@ static const List<ActivityListItem> activityList = [
     icon: Icons.pedal_bike,
   ),
   ActivityListItem(
-    name: 'Yoga',
-    type: 'Flexibility',
-    description: 'A yoga session to improve flexibility and mindfulness.',
-    icon: Icons.self_improvement,
+  name: 'Rope Jumping',
+  type: 'Cardio',
+  description: 'An intense cardio workout that improves endurance, coordination, and overall fitness.',
+  icon: Icons.sports_gymnastics,
   ),
   ActivityListItem(
     name: 'Weightlifting',
@@ -40,4 +44,11 @@ static const List<ActivityListItem> activityList = [
     icon: Icons.fitness_center,
   ),
 ];
+static const List<Widget> activityWidgets = [
+  RunningWidget(),
+  CyclingWidget(),
+  RoperJumpingWidget(),
+  WeighliftingWidget(),
+];
+
 }
