@@ -10,17 +10,16 @@ class RunningWidget extends StatelessWidget {
         title: Text('Running Activity'),
       ),
       body: Center(
-        child: Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Center(
-        child: Text(
-          'Running Activity',
-          style: TextStyle(color: Colors.white, fontSize: 20),
-        ),
-        ),
-      ),
+        child: Center(
+          child: Column(
+          children: [
+            const SizedBox(height: 20),
+            ElevatedButton(onPressed: () => {}, child: Text("Start running")),
+            const SizedBox(height: 20),
+            ElevatedButton(onPressed: () => {}, child: Text("Stop running"))
+          ],
+        )
+        )
     ),
     );
   }

@@ -39,4 +39,11 @@ final ThemeData appTheme = ThemeData(
     iconColor: AppColors.text,
     subtitleTextStyle: TextStyle(color: AppColors.text, fontSize: 12),
   ),
+  cardTheme: CardTheme(
+    color: AppColors.background,
+    shadowColor: AppColors.primary.withOpacity(0.2),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12),
+    ),
+  ),
 );
