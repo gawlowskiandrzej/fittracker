@@ -1,3 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fittracker/services/database.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:async';
@@ -101,13 +104,71 @@ class _CyclingWidgetState extends State<CyclingWidget> {
     });
   }
 
-  void _stopCycling() {
-    _timer.cancel();
-    _positionStream?.cancel();
-    setState(() {
-      _isActive = false;
-    });
+  void _stopCycling() async {
+  _timer.cancel();
+  _positionStream?.cancel();
+  
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return;  // Jeśli użytkownik nie jest zalogowany, nie zapisuj aktywności
+  
+  setState(() {
+    _isActive = false;
+  });
+
+  // Tworzenie mapy danych aktywności
+  Map<String, dynamic> activityData = {
+    'userId': user.uid,
+    'startTime': Timestamp.fromDate(DateTime.now().subtract(Duration(seconds: _seconds))),
+    'endTime': Timestamp.fromDate(DateTime.now()),
+    'durationMinutes': double.parse((_seconds / 60).toStringAsFixed(2)),
+    'distanceKm': double.parse(_km.toStringAsFixed(2)),
+    'caloriesBurned': double.parse(_kalories.toStringAsFixed(2)),
+    'steps': 0, // Jeśli nie monitorujesz kroków, to będzie 0, możesz to zaktualizować
+    'type': 1,  // Typ aktywności - tutaj zakładamy "cycling", który ma id 1 w kolekcji activity_types
+  };
+
+  // Zapisz aktywność do Firestore
+  try {
+    final activityRef = await DatabaseService().addActivity(activityData);
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Aktywność zapisana')));
+
+    // Po zapisaniu aktywności, zaktualizuj statystyki użytkownika
+    _updateActivityStats(user.uid, _km, _kalories, _seconds / 60);
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Błąd zapisywania aktywności')));
   }
+}
+
+void _updateActivityStats(String userId, double distance, double calories, double duration) async {
+  try {
+    final activityStatsRef = FirebaseFirestore.instance.collection('activity_stats');
+
+    // Pobierz obecne dane statystyk użytkownika
+    final querySnapshot = await activityStatsRef.where('userId', isEqualTo: userId).get();
+    if (querySnapshot.docs.isNotEmpty) {
+      // Jeśli istnieje już zapis statystyk, zaktualizuj go
+      final doc = querySnapshot.docs.first;
+      final data = doc.data() as Map<String, dynamic>;
+
+      // Zaktualizuj dane (sumowanie wartości)
+      await doc.reference.update({
+        'total_calories': data['total_calories'] + calories,
+        'total_distance': data['total_distance'] + distance,
+        'total_duration': data['total_duration'] + duration,
+      });
+    } else {
+      // Jeśli nie ma jeszcze statystyk, stwórz nowy rekord
+      await activityStatsRef.add({
+        'userId': userId,
+        'total_calories': calories,
+        'total_distance': distance,
+        'total_duration': duration,
+      });
+    }
+  } catch (e) {
+    print('Błąd aktualizacji statystyk: $e');
+  }
+}
 
   void _restartCycling() {
     _timer.cancel();

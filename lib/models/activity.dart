@@ -6,10 +6,10 @@ class Activity {
   int? typeId;
   double? distanceKm;
   int? steps;
-  int? durationMinutes;
+  double? durationMinutes;
   DateTime? startTime;
   DateTime? endTime;
-  int? caloriesBurned;
+  double? caloriesBurned;
   String? activityName;
 
 
@@ -42,8 +42,8 @@ class Activity {
       typeId: data['type'] ?? 'unknown',
       distanceKm: (data['distanceKm'] ?? 0).toDouble(),
       steps: data['steps'] ?? 0,
-      caloriesBurned: data['caloriesBurned'] ?? 0,
-      durationMinutes: data['durationMinutes'] ?? 0,
+      caloriesBurned: data['caloriesBurned'].toDouble() ?? 0,
+      durationMinutes: data['durationMinutes'].toDouble() ?? 0,
       startTime: (data['startTime'] as Timestamp).toDate(),
       endTime: (data['endTime'] as Timestamp).toDate(),
       activityName: activity,

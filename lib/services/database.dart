@@ -173,4 +173,17 @@ class DatabaseService {
   return activities;
 }
 
+Future<void> _saveUserRecord(String userId, int activityId, double value) async {
+  try {
+    await FirebaseFirestore.instance.collection('user_records').add({
+      'userId': userId,
+      'activityid': activityId,
+      'recordtype': 1,
+      'value': value,  
+    });
+  } catch (e) {
+    print('Błąd zapisywania rekordu użytkownika: $e');
+  }
+}
+
 }
