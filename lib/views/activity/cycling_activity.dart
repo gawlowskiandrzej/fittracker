@@ -24,6 +24,7 @@ class _CyclingWidgetState extends State<CyclingWidget> {
   List<LatLng> _route = [];
   Set<Marker> _markers = {};
   Set<Polyline> _polylines = {};
+  DatabaseService _databaseService = new DatabaseService();
   LatLng _simulatedPosition = LatLng(37.7749, -122.4194);
 
   void _startCycling() async {
@@ -129,46 +130,17 @@ class _CyclingWidgetState extends State<CyclingWidget> {
 
   // Zapisz aktywność do Firestore
   try {
-    final activityRef = await DatabaseService().addActivity(activityData);
+    final activityRef = await _databaseService.addActivity(activityData);
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Aktywność zapisana')));
 
     // Po zapisaniu aktywności, zaktualizuj statystyki użytkownika
-    _updateActivityStats(user.uid, _km, _kalories, _seconds / 60);
+    _databaseService.updateActivityStats(user.uid, _km, _kalories, _seconds / 60);
   } catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Błąd zapisywania aktywności')));
   }
 }
 
-void _updateActivityStats(String userId, double distance, double calories, double duration) async {
-  try {
-    final activityStatsRef = FirebaseFirestore.instance.collection('activity_stats');
 
-    // Pobierz obecne dane statystyk użytkownika
-    final querySnapshot = await activityStatsRef.where('userId', isEqualTo: userId).get();
-    if (querySnapshot.docs.isNotEmpty) {
-      // Jeśli istnieje już zapis statystyk, zaktualizuj go
-      final doc = querySnapshot.docs.first;
-      final data = doc.data() as Map<String, dynamic>;
-
-      // Zaktualizuj dane (sumowanie wartości)
-      await doc.reference.update({
-        'total_calories': data['total_calories'] + calories,
-        'total_distance': data['total_distance'] + distance,
-        'total_duration': data['total_duration'] + duration,
-      });
-    } else {
-      // Jeśli nie ma jeszcze statystyk, stwórz nowy rekord
-      await activityStatsRef.add({
-        'userId': userId,
-        'total_calories': calories,
-        'total_distance': distance,
-        'total_duration': duration,
-      });
-    }
-  } catch (e) {
-    print('Błąd aktualizacji statystyk: $e');
-  }
-}
 
   void _restartCycling() {
     _timer.cancel();

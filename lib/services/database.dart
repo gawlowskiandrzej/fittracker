@@ -12,6 +12,8 @@ class DatabaseService {
     'activity_types',
   );
 
+
+
   Map<String, String> activity_types = {};
   Future getActivities() async {
     QuerySnapshot snapshot = await activityCollection.get();
@@ -185,5 +187,34 @@ Future<void> _saveUserRecord(String userId, int activityId, double value) async 
     print('Błąd zapisywania rekordu użytkownika: $e');
   }
 }
+Future<void> updateActivityStats(String userId, double distance, double calories, double duration) async {
+  try {
+    final activityStatsRef = FirebaseFirestore.instance.collection('activity_stats');
 
+    // Pobierz obecne dane statystyk użytkownika
+    final querySnapshot = await activityStatsRef.where('userId', isEqualTo: userId).get();
+    if (querySnapshot.docs.isNotEmpty) {
+      // Jeśli istnieje już zapis statystyk, zaktualizuj go
+      final doc = querySnapshot.docs.first;
+      final data = doc.data() as Map<String, dynamic>;
+
+      // Zaktualizuj dane (sumowanie wartości)
+      await doc.reference.update({
+        'total_calories': data['total_calories'] + calories,
+        'total_distance': data['total_distance'] + distance,
+        'total_duration': data['total_duration'] + duration,
+      });
+    } else {
+      // Jeśli nie ma jeszcze statystyk, stwórz nowy rekord
+      await activityStatsRef.add({
+        'userId': userId,
+        'total_calories': calories,
+        'total_distance': distance,
+        'total_duration': duration,
+      });
+    }
+  } catch (e) {
+    print('Błąd aktualizacji statystyk: $e');
+  }
+}
 }
