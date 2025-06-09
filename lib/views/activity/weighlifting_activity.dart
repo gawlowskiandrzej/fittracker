@@ -19,15 +19,17 @@ class _WeighliftingWidgetState extends State<WeighliftingWidget> {
   int _seconds = 0;
   double _km = 0.0;
   double _kalories = 0.0;
-  int _jumps = 0;
   int _sets = 0;
   int _maxsets = 3;
   int _reps = 0; // Liczba powtórzeń
   int _restTime = 30;
+  bool _isBreakStarted = false;
+  int _breakTimeLeft = 0;
+  int _timeToBreak = 30;
   bool _isActive = false;
   late double _previousAccelerationY;
-  
-@override
+
+  @override
   void initState() {
     super.initState();
 
@@ -44,98 +46,106 @@ class _WeighliftingWidgetState extends State<WeighliftingWidget> {
     });
   }
 
-void _onLiftDetect() {
+  void _onLiftDetect() {
     setState(() {
-      _jumps++;
-      _kalories = _calculateCalories(_jumps);
+      _reps++;
+      _kalories += _calculateCalories(_reps);
     });
   }
 
-   double _calculateCalories(int jumps) {
+  double _calculateCalories(int reps) {
     // Prosty wzór do obliczenia kalorii na podstawie liczby skoków
     // Zakładając, że średnio jeden skok spala 0.05 kalorii
-    return jumps * 0.05;
+    return reps * 1;
   }
 
   bool _isLifting(AccelerometerEvent event) {
-    // Prosty algorytm do wykrywania skoku
-    // Sprawdzamy, czy zmiana w osi Y jest wystarczająco duża, aby uznać to za skok
-    double accelerationThreshold = 12.0; // Próg przyspieszenia dla wykrywania skoku
+    double accelerationThreshold = 12.0;
     double currentAccelerationY = event.y;
 
     // Jeśli zmiana w osi Y jest wystarczająca, uznajemy to za skok
-    if ((currentAccelerationY - _previousAccelerationY).abs() > accelerationThreshold) {
+    if ((currentAccelerationY - _previousAccelerationY).abs() >
+        accelerationThreshold) {
       _previousAccelerationY = currentAccelerationY;
       return true;
     }
-    
+
     return false;
   }
-  
-void _startJumping() async {
+
+  void _startLifting() async {
     setState(() {
       _isActive = true;
       _seconds = 0;
       _km = 0.0;
       _kalories = 0.0;
-      _reps = 0; 
-      
-      _sets = 0; 
+      _reps = 0;
+      _sets = 0;
     });
 
-     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-    setState(() {
-      _seconds++;
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      setState(() {
+        _seconds++;
 
-      // Symulacja zmiany danych akcelerometru (np. osi Y)
-      // Generujemy losowe przyspieszenie, które będzie symulować skok
-      double accelerationY = _simulateAcceleration();
+        double accelerationY = _simulateAcceleration();
 
-      // Sprawdzamy, czy nastąpił "skok" na podstawie zmiany w przyspieszeniu (na osi Y)
-      if (_isLifting(AccelerometerEvent(0.0, accelerationY, 0.0, DateTime.now()))) {
-        _onLiftDetect();
-      }
+        if (!_isBreakStarted &&
+            _isLifting(
+              AccelerometerEvent(0.0, accelerationY, 0.0, DateTime.now()),
+            )) {
+          _onLiftDetect();
+        }
+      });
     });
-  });
   }
 
   double _simulateAcceleration() {
-  // Symulujemy zmianę przyspieszenia (oscy Y) - losowo w zakresie -15 do 15
-  return (Random().nextDouble() - 0.5) * 30.0;
-}
-     void _stopJumping() async {
-  _timer.cancel();
-  
-  final user = FirebaseAuth.instance.currentUser;
-  if (user == null) return;  // Jeśli użytkownik nie jest zalogowany, nie zapisuj aktywności
-  
-  setState(() {
-    _isActive = false;
-  });
-
-  // Tworzenie mapy danych aktywności
-  Map<String, dynamic> activityData = {
-    'userId': user.uid,
-    'startTime': Timestamp.fromDate(DateTime.now().subtract(Duration(seconds: _seconds))),
-    'endTime': Timestamp.fromDate(DateTime.now()),
-    'durationMinutes': double.parse((_seconds / 60).toStringAsFixed(2)),
-    'distanceKm': double.parse(_km.toStringAsFixed(2)),
-    'caloriesBurned': double.parse(_kalories.toStringAsFixed(2)),
-    'steps': 0, // Jeśli nie monitorujesz kroków, to będzie 0, możesz to zaktualizować
-    'type': 4,  // Typ aktywności - tutaj zakładamy "cycling", który ma id 1 w kolekcji activity_types
-  };
-  // Zapisz aktywność do Firestore
-  try {
-    final activityRef = await DatabaseService().addActivity(activityData);
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Aktywność zapisana')));
-
-    // Po zapisaniu aktywności, zaktualizuj statystyki użytkownika
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Błąd zapisywania aktywności')));
+    // Symulujemy zmianę przyspieszenia (oscy Y) - losowo w zakresie -15 do 15
+    return (Random().nextDouble() - 0.5) * 30.0;
   }
-}
 
-String _formatTime(int seconds) {
+  void _stopLifting() async {
+    _timer.cancel();
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null)
+      return; // Jeśli użytkownik nie jest zalogowany, nie zapisuj aktywności
+
+    setState(() {
+      _isActive = false;
+    });
+
+    // Tworzenie mapy danych aktywności
+    Map<String, dynamic> activityData = {
+      'userId': user.uid,
+      'startTime': Timestamp.fromDate(
+        DateTime.now().subtract(Duration(seconds: _seconds)),
+      ),
+      'endTime': Timestamp.fromDate(DateTime.now()),
+      'durationMinutes': double.parse((_seconds / 60).toStringAsFixed(2)),
+      'distanceKm': double.parse(_km.toStringAsFixed(2)),
+      'caloriesBurned': double.parse(_kalories.toStringAsFixed(2)),
+      'steps':
+          0, // Jeśli nie monitorujesz kroków, to będzie 0, możesz to zaktualizować
+      'type':
+          3, // Typ aktywności - tutaj zakładamy "cycling", który ma id 1 w kolekcji activity_types
+    };
+    // Zapisz aktywność do Firestore
+    try {
+      final activityRef = await DatabaseService().addActivity(activityData);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Aktywność zapisana')));
+
+      // Po zapisaniu aktywności, zaktualizuj statystyki użytkownika
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Błąd zapisywania aktywności')));
+    }
+  }
+
+  String _formatTime(int seconds) {
     final minutes = seconds ~/ 60;
     final remainingSeconds = seconds % 60;
     return '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
@@ -144,14 +154,11 @@ String _formatTime(int seconds) {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Weightlift Activity'),
-      ),
+      appBar: AppBar(title: Text('Weightlift Activity')),
       body: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
           children: [
-            // Karta z czasem i dystansem
             Card(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -171,116 +178,179 @@ String _formatTime(int seconds) {
                         const SizedBox(height: 4),
                         Text(
                           _formatTime(_seconds),
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                        const Text('Time', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                        const Text(
+                          'Time',
+                          style: TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
                       ],
                     ),
                     Column(
                       children: [
-                        const Icon(Icons.local_fire_department, size: 28, color: Colors.red),
+                        const Icon(
+                          Icons.local_fire_department,
+                          size: 28,
+                          color: Colors.red,
+                        ),
                         const SizedBox(height: 4),
                         Text(
                           '${_kalories.toStringAsFixed(0)} kcal',
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                        const Text('Calories', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                        const Text(
+                          'Calories',
+                          style: TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
                       ],
                     ),
                     Column(
                       children: [
-                        const Icon(Icons.repeat, size: 28, color: Colors.orange),
+                        const Icon(
+                          Icons.repeat,
+                          size: 28,
+                          color: Colors.orange,
+                        ),
                         const SizedBox(height: 4),
                         Text(
                           '$_reps',
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                        const Text('Reps', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                        const Text(
+                          'Reps',
+                          style: TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
                       ],
                     ),
                     Column(
                       children: [
-                        const Icon(Icons.view_module, size: 28, color: Colors.green),
+                        const Icon(
+                          Icons.view_module,
+                          size: 28,
+                          color: Colors.green,
+                        ),
                         const SizedBox(height: 4),
                         Text(
                           '$_sets',
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                        const Text('Sets', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                        const Text(
+                          'Sets',
+                          style: TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
                       ],
                     ),
-
                   ],
                 ),
               ),
             ),
-
             const SizedBox(height: 12),
-            SizedBox(
-            height: 500,
-            width: 500,
-            child: Center(
-              child: Card(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                elevation: 4,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
+            _isActive
+                ? SizedBox(
+                  height: 500,
+                  width: 500,
                   child: Column(
-                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const SizedBox(height: 16),
-
-                      // Wybór liczby serii
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('Liczba serii:', style: TextStyle(fontSize: 16)),
-                          SizedBox(
-                            width: 80,
-                            child: TextField(
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(
-                                hintText: 'np. 3',
-                              ),
-                              onChanged: (value) {
-                                setState(() {
-                                  _maxsets = int.tryParse(value) ?? 3;
-                                });
-                              },
-                            ),
-                          ),
-                        ],
+                      Text(
+                        _isBreakStarted
+                            ? 'Czas trwania przerwy: $_breakTimeLeft sekund'
+                            : 'Time to exercise!',
+                        style: TextStyle(fontSize: 18),
                       ),
-
                       const SizedBox(height: 16),
-
-                      // Długość przerwy
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('Przerwa (sekundy):', style: TextStyle(fontSize: 16)),
-                          SizedBox(
-                            width: 80,
-                            child: TextField(
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(
-                                hintText: 'np. 30',
-                              ),
-                              onChanged: (value) {
-                                setState(() {
-                                  _restTime = int.tryParse(value) ?? 30;
-                                });
-                              },
-                            ),
-                          ),
-                        ],
+                      ElevatedButton(
+                        onPressed: _endSeries,
+                        child: const Text('End serie'),
                       ),
                     ],
                   ),
+                )
+                : SizedBox(
+                  height: 500,
+                  width: 500,
+                  child: Center(
+                    child: Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 4,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const SizedBox(height: 16),
+
+                            // Wybór liczby serii
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  'Set count:',
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                                SizedBox(
+                                  width: 80,
+                                  child: TextField(
+                                    keyboardType: TextInputType.number,
+                                    decoration: const InputDecoration(
+                                      hintText: '3',
+                                    ),
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _maxsets = int.tryParse(value) ?? 3;
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 16),
+
+                            // Długość przerwy
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  'Break (seconds):',
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                                SizedBox(
+                                  width: 80,
+                                  child: TextField(
+                                    keyboardType: TextInputType.number,
+                                    decoration: const InputDecoration(
+                                      hintText: '30',
+                                    ),
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _restTime = int.tryParse(value) ?? 30;
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-            ),
-          ),
 
             // Mapa na środku ekranu
             const SizedBox(height: 30),
@@ -292,7 +362,7 @@ String _formatTime(int seconds) {
                   Column(
                     children: [
                       ElevatedButton(
-                        onPressed: _isActive ? _stopJumping : _startJumping,
+                        onPressed: _isActive ? _stopLifting : _startLifting,
                         child: Icon(_isActive ? Icons.stop : Icons.play_arrow),
                         style: ElevatedButton.styleFrom(
                           textStyle: const TextStyle(fontSize: 18),
@@ -311,9 +381,10 @@ String _formatTime(int seconds) {
                               _seconds = 0;
                               _km = 0.0;
                               _kalories = 0.0;
-                              _jumps = 0; // Reset liczby skoków
+                              _reps = 0; // Reset liczby skoków
+                              _sets = 0; // Reset liczby serii
                             });
-                          },        
+                          },
                           child: Icon(Icons.replay),
                           style: ElevatedButton.styleFrom(
                             textStyle: const TextStyle(fontSize: 18),
@@ -330,5 +401,31 @@ String _formatTime(int seconds) {
         ),
       ),
     );
+  }
+
+  void _endSeries() {
+    setState(() {
+      _isBreakStarted = true;
+      _breakTimeLeft = _restTime;
+      _sets++;
+    });
+
+    // Uruchamiamy osobny timer tylko dla przerwy
+    Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_breakTimeLeft > 0) {
+        setState(() {
+          _breakTimeLeft--;
+        });
+      } else {
+        timer.cancel();
+        setState(() {
+          _isBreakStarted = false;
+          _reps = 0;
+        });
+        if (_sets >= _maxsets) {
+          _stopLifting();
+        }
+      }
+    });
   }
 }
