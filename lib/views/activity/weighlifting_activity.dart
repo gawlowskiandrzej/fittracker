@@ -27,6 +27,10 @@ class _WeighliftingWidgetState extends State<WeighliftingWidget> {
   int _breakTimeLeft = 0;
   int _timeToBreak = 30;
   bool _isActive = false;
+  bool _movingUp = false;
+  bool _waitingForReturn = false;
+  double _liftThreshold = 5.0; // próg przyspieszenia w górę
+  double _returnThreshold = 5.0; // próg przyspieszenia w dół
   late double _previousAccelerationY;
 
   @override
@@ -40,10 +44,29 @@ class _WeighliftingWidgetState extends State<WeighliftingWidget> {
     accelerometerEvents.listen((AccelerometerEvent event) {
       // Zmienna "event" zawiera dane z akcelerometru (x, y, z)
       // Skoki mogą być wykrywane na podstawie zmiany w osi Y (czyli przyspieszenie w pionie)
-      if (_isLifting(event)) {
+      if (_checkRepCycle(event)) {
         _onLiftDetect();
       }
     });
+  }
+
+  bool _checkRepCycle(AccelerometerEvent event) {
+    double y = event.y;
+
+    if (!_movingUp && y > _liftThreshold) {
+      _movingUp = true;
+      _waitingForReturn = true;
+      return false; // Jeszcze nie liczymy powtórzenia, dopiero połowa cyklu
+    }
+
+    if (_movingUp && _waitingForReturn && y < _returnThreshold) {
+      // Pełny cykl: góra i powrót
+      _movingUp = false;
+      _waitingForReturn = false;
+      return true; // To jest pełne powtórzenie
+    }
+
+    return false;
   }
 
   void _onLiftDetect() {
@@ -123,7 +146,7 @@ class _WeighliftingWidgetState extends State<WeighliftingWidget> {
       ),
       'endTime': Timestamp.fromDate(DateTime.now()),
       'durationMinutes': double.parse((_seconds / 60).toStringAsFixed(2)),
-      'distanceKm': double.parse(_km.toStringAsFixed(2)),
+      'distanceKm': 0,
       'caloriesBurned': double.parse(_kalories.toStringAsFixed(2)),
       'steps':
           0, // Jeśli nie monitorujesz kroków, to będzie 0, możesz to zaktualizować
@@ -266,7 +289,7 @@ class _WeighliftingWidgetState extends State<WeighliftingWidget> {
                     children: [
                       Text(
                         _isBreakStarted
-                            ? 'Czas trwania przerwy: $_breakTimeLeft sekund'
+                            ? 'Pouse time: $_breakTimeLeft seconds'
                             : 'Time to exercise!',
                         style: TextStyle(fontSize: 18),
                       ),
