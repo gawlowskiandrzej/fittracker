@@ -45,23 +45,6 @@ class _CyclingWidgetState extends State<CyclingWidget> {
       _simulatedPosition = LatLng(37.7749, -122.4194);
     });
 
-    // _positionStream = Geolocator.getPositionStream().listen((
-    //   Position position,
-    // ) {
-    //   final currentLatLng = LatLng(position.latitude, position.longitude);
-    //   if (_route.isNotEmpty) {
-    //     final distance = Geolocator.distanceBetween(
-    //       _route.last.latitude,
-    //       _route.last.longitude,
-    //       currentLatLng.latitude,
-    //       currentLatLng.longitude,
-    //     ); // w metrach
-    //     _km += distance / 1000.0; // konwersja na km
-    //     _kalories = _km * 35; // prosta estymacja, np. 35 kcal/km
-    //   }
-    //   _route.add(currentLatLng);
-    // });
-
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
       setState(() {
         _seconds++;
@@ -110,13 +93,12 @@ class _CyclingWidgetState extends State<CyclingWidget> {
   _positionStream?.cancel();
   
   final user = FirebaseAuth.instance.currentUser;
-  if (user == null) return;  // Jeśli użytkownik nie jest zalogowany, nie zapisuj aktywności
+  if (user == null) return; 
   
   setState(() {
     _isActive = false;
   });
 
-  // Tworzenie mapy danych aktywności
   Map<String, dynamic> activityData = {
     'userId': user.uid,
     'startTime': Timestamp.fromDate(DateTime.now().subtract(Duration(seconds: _seconds))),
@@ -124,11 +106,10 @@ class _CyclingWidgetState extends State<CyclingWidget> {
     'durationMinutes': double.parse((_seconds / 60).toStringAsFixed(2)),
     'distanceKm': double.parse(_km.toStringAsFixed(2)),
     'caloriesBurned': double.parse(_kalories.toStringAsFixed(2)),
-    'steps': 0, // Jeśli nie monitorujesz kroków, to będzie 0, możesz to zaktualizować
-    'type': 1,  // Typ aktywności - tutaj zakładamy "cycling", który ma id 1 w kolekcji activity_types
+    'steps': 0, 
+    'type': 1,  
   };
 
-  // Zapisz aktywność do Firestore
   try {
     final activityRef = await _databaseService.addActivity(activityData);
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Aktywność zapisana')));

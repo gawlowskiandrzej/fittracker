@@ -115,10 +115,8 @@ class DatabaseService {
     };
 
 
-  // Przygotowanie listy dla wyników
   List<Activity?> activities = [];
 
-  // 1. Najdłuższa aktywność (na podstawie 'durationMinutes')
       final longestActivitySnapshot = await activityCollection
       .where('userId', isEqualTo: user.uid)
       .orderBy('durationMinutes', descending: true)
@@ -135,8 +133,6 @@ class DatabaseService {
     activities.add(null);
   }
 
-
-  // 2. Najwięcej spalonych kalorii (na podstawie 'caloriesBurned')
   final mostCaloriesBurnedSnapshot = await activityCollection
       .where('userId', isEqualTo: user.uid)
       .orderBy('caloriesBurned', descending: true)

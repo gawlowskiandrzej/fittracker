@@ -67,8 +67,6 @@ bool _isJumping(AccelerometerEvent event) {
   }
 
    double _calculateCalories(int jumps) {
-    // Prosty wzór do obliczenia kalorii na podstawie liczby skoków
-    // Zakładając, że średnio jeden skok spala 0.05 kalorii
     return jumps * 0.05;
   }
 double _simulateAcceleration() {
