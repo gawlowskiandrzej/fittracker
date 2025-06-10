@@ -25,12 +25,12 @@ class _WeighliftingWidgetState extends State<WeighliftingWidget> {
   int _restTime = 30;
   bool _isBreakStarted = false;
   int _breakTimeLeft = 0;
-  int _timeToBreak = 30;
+  final int _timeToBreak = 30;
   bool _isActive = false;
   bool _movingUp = false;
   bool _waitingForReturn = false;
-  double _liftThreshold = 5.0; // próg przyspieszenia w górę
-  double _returnThreshold = 5.0; // próg przyspieszenia w dół
+  final double _liftThreshold = 5.0; // próg przyspieszenia w górę
+  final double _returnThreshold = 5.0; // próg przyspieszenia w dół
   late double _previousAccelerationY;
 
   @override
@@ -131,8 +131,9 @@ class _WeighliftingWidgetState extends State<WeighliftingWidget> {
     _timer.cancel();
 
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null)
+    if (user == null) {
       return; // Jeśli użytkownik nie jest zalogowany, nie zapisuj aktywności
+    }
 
     setState(() {
       _isActive = false;
@@ -386,12 +387,12 @@ class _WeighliftingWidgetState extends State<WeighliftingWidget> {
                     children: [
                       ElevatedButton(
                         onPressed: _isActive ? _stopLifting : _startLifting,
-                        child: Icon(_isActive ? Icons.stop : Icons.play_arrow),
                         style: ElevatedButton.styleFrom(
                           textStyle: const TextStyle(fontSize: 18),
                           shape: CircleBorder(),
                           padding: EdgeInsets.all(24),
                         ),
+                        child: Icon(_isActive ? Icons.stop : Icons.play_arrow),
                       ),
                     ],
                   ),
@@ -408,12 +409,12 @@ class _WeighliftingWidgetState extends State<WeighliftingWidget> {
                               _sets = 0; // Reset liczby serii
                             });
                           },
-                          child: Icon(Icons.replay),
                           style: ElevatedButton.styleFrom(
                             textStyle: const TextStyle(fontSize: 18),
                             shape: CircleBorder(),
                             padding: EdgeInsets.all(24),
                           ),
+                          child: Icon(Icons.replay),
                         ),
                       ],
                     ),

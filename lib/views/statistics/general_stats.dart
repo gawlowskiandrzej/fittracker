@@ -9,12 +9,12 @@ class GeneralStats extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Lista dni tygodnia
-    DatabaseService _databaseService = DatabaseService();
+    DatabaseService databaseService = DatabaseService();
     const List<String> weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
     var i = 0;
 
     return FutureBuilder<Map<String, int>>(
-    future: _databaseService.getDailyActvityCounts(), // Pobierz dane z bazy
+    future: databaseService.getDailyActvityCounts(), // Pobierz dane z bazy
     builder: (context, snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
           return const Loading();

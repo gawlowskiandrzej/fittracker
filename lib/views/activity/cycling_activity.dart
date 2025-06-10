@@ -21,10 +21,10 @@ class _CyclingWidgetState extends State<CyclingWidget> {
   bool _isActive = false;
   late GoogleMapController _mapController;
   StreamSubscription<Position>? _positionStream;
-  List<LatLng> _route = [];
+  final List<LatLng> _route = [];
   Set<Marker> _markers = {};
   Set<Polyline> _polylines = {};
-  DatabaseService _databaseService = new DatabaseService();
+  final DatabaseService _databaseService = DatabaseService();
   LatLng _simulatedPosition = LatLng(37.7749, -122.4194);
 
   void _startCycling() async {
@@ -183,7 +183,7 @@ class _CyclingWidgetState extends State<CyclingWidget> {
                           ),
                         ),
                         const Text(
-                          'Czas',
+                          'Time',
                           style: TextStyle(fontSize: 12, color: Colors.grey),
                         ),
                       ],
@@ -206,7 +206,7 @@ class _CyclingWidgetState extends State<CyclingWidget> {
                           ),
                         ),
                         const Text(
-                          'Kalorie',
+                          'Calories',
                           style: TextStyle(fontSize: 12, color: Colors.grey),
                         ),
                       ],
@@ -229,7 +229,7 @@ class _CyclingWidgetState extends State<CyclingWidget> {
                           ),
                         ),
                         const Text(
-                          'Dystans',
+                          'Distance',
                           style: TextStyle(fontSize: 12, color: Colors.grey),
                         ),
                       ],
@@ -272,12 +272,12 @@ class _CyclingWidgetState extends State<CyclingWidget> {
                     children: [
                       ElevatedButton(
                         onPressed: _isActive ? _stopCycling : _startCycling,
-                        child: Icon(_isActive ? Icons.stop : Icons.play_arrow),
                         style: ElevatedButton.styleFrom(
                           textStyle: const TextStyle(fontSize: 18),
                           shape: CircleBorder(),
                           padding: EdgeInsets.all(24),
                         ),
+                        child: Icon(_isActive ? Icons.stop : Icons.play_arrow),
                       ),
                     ],
                   ),
@@ -286,12 +286,12 @@ class _CyclingWidgetState extends State<CyclingWidget> {
                       children: [
                         ElevatedButton(
                           onPressed: _restartCycling,
-                          child: Icon(Icons.replay),
                           style: ElevatedButton.styleFrom(
                             textStyle: const TextStyle(fontSize: 18),
                             shape: CircleBorder(),
                             padding: EdgeInsets.all(24),
                           ),
+                          child: Icon(Icons.replay),
                         ),
                       ],
                     ),

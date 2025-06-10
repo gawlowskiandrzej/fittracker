@@ -254,12 +254,12 @@ double _simulateAcceleration() {
                     children: [
                       ElevatedButton(
                         onPressed: _isActive ? _stopJumping : _startJumping,
-                        child: Icon(_isActive ? Icons.stop : Icons.play_arrow),
                         style: ElevatedButton.styleFrom(
                           textStyle: const TextStyle(fontSize: 18),
                           shape: CircleBorder(),
                           padding: EdgeInsets.all(24),
                         ),
+                        child: Icon(_isActive ? Icons.stop : Icons.play_arrow),
                       ),
                     ],
                   ),
@@ -274,13 +274,13 @@ double _simulateAcceleration() {
                               _kalories = 0.0;
                               _jumps = 0; // Reset liczby skoków
                             });
-                          },        
-                          child: Icon(Icons.replay),
+                          },
                           style: ElevatedButton.styleFrom(
                             textStyle: const TextStyle(fontSize: 18),
                             shape: CircleBorder(),
                             padding: EdgeInsets.all(24),
-                          ),
+                          ),        
+                          child: Icon(Icons.replay),
                         ),
                       ],
                     ),

@@ -28,7 +28,7 @@ class Activity {
   });
 
   Activity.empty(){
-    this.id = "-1";
+    id = "-1";
   }
 
   factory Activity.fromFirestore(

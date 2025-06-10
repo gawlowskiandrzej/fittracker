@@ -42,12 +42,12 @@ class DatabaseService {
     final typesSnapshot = await activityTypesCollection.get();
     activity_types = {
       for (var doc in typesSnapshot.docs)
-        (doc.data() as Map<String, dynamic>)['id'].toString():
-            (doc.data() as Map<String, dynamic>)['type'] ?? 'Nieznany',
+        (doc.data())['id'].toString():
+            (doc.data())['type'] ?? 'Nieznany',
     };
 
     return activities.map((doc) {
-      final data = doc.data() as Map<String, dynamic>;
+      final data = doc.data();
       final typeId = data['type'].toString(); // np. "1"
       final typeName = activity_types[typeId] ?? 'Nieznany';
 
@@ -64,8 +64,8 @@ class DatabaseService {
   final typesSnapshot = await activityTypesCollection.get();
   final activityValues = {
     for (var doc in typesSnapshot.docs)
-      (doc.data() as Map<String, dynamic>)['type'].toString():
-          (doc.data() as Map<String, dynamic>)['id'],
+      (doc.data())['type'].toString():
+          (doc.data())['id'],
   };
 
   // 2. Dla każdego typu aktywności pobierz liczbę wystąpień
@@ -91,7 +91,7 @@ class DatabaseService {
     final typesSnapshot = await activityCollection.get();
     
     for (var doc in typesSnapshot.docs) {
-      final endTime = (doc.data() as Map<String, dynamic>)['endTime'] as Timestamp;
+      final endTime = (doc.data())['endTime'] as Timestamp;
       final dateTime = endTime.toDate();
       final weekday = DateFormat("EEEE").format(dateTime); // Get the full name of the weekday
 
@@ -110,8 +110,8 @@ class DatabaseService {
   final typesSnapshot = await activityTypesCollection.get();
     activity_types = {
       for (var doc in typesSnapshot.docs)
-        (doc.data() as Map<String, dynamic>)['id'].toString():
-            (doc.data() as Map<String, dynamic>)['type'] ?? 'Nieznany',
+        (doc.data())['id'].toString():
+            (doc.data())['type'] ?? 'Nieznany',
     };
 
 
@@ -125,7 +125,7 @@ class DatabaseService {
 
   if (longestActivitySnapshot.docs.isNotEmpty) {
     final doc = longestActivitySnapshot.docs.first;
-    final data = doc.data() as Map<String, dynamic>;
+    final data = doc.data();
     final typeId = data['type'].toString();
     final typeName = activity_types[typeId] ?? 'Nieznany';
     activities.add(Activity.fromFirestore(data, doc.id, typeName));
@@ -142,7 +142,7 @@ class DatabaseService {
 
   if (mostCaloriesBurnedSnapshot.docs.isNotEmpty) {
     final doc = mostCaloriesBurnedSnapshot.docs.first;
-    final data = doc.data() as Map<String, dynamic>;
+    final data = doc.data();
     final typeId = data['type'].toString();
     final typeName = activity_types[typeId] ?? 'Nieznany';
     activities.add(Activity.fromFirestore(data, doc.id, typeName));
@@ -159,7 +159,7 @@ class DatabaseService {
 
   if (longestDistanceSnapshot.docs.isNotEmpty) {
     final doc = longestDistanceSnapshot.docs.first;
-    final data = doc.data() as Map<String, dynamic>;
+    final data = doc.data();
     final typeId = data['type'].toString();
     final typeName = activity_types[typeId] ?? 'Nieznany';
     activities.add(Activity.fromFirestore(data, doc.id, typeName));
@@ -192,7 +192,7 @@ Future<void> updateActivityStats(String userId, double distance, double calories
     if (querySnapshot.docs.isNotEmpty) {
       // Jeśli istnieje już zapis statystyk, zaktualizuj go
       final doc = querySnapshot.docs.first;
-      final data = doc.data() as Map<String, dynamic>;
+      final data = doc.data();
 
       // Zaktualizuj dane (sumowanie wartości)
       await doc.reference.update({
