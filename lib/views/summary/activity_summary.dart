@@ -14,23 +14,23 @@ class ActivitySummary extends StatelessWidget {
     final List<Widget> statWidgets = [];
 
     if (activity.distanceKm != null && activity.distanceKm! > 0) {
-      statWidgets.add(_buildTile('Dystans', '${activity.distanceKm!.toStringAsFixed(2)} km'));
+      statWidgets.add(_buildTile('Distance', '${activity.distanceKm!.toStringAsFixed(2)} km'));
     }
     if (activity.steps != null && activity.steps! > 0) {
-      statWidgets.add(_buildTile('Kroki', '${activity.steps}'));
+      statWidgets.add(_buildTile('Steps', '${activity.steps}'));
     }
     if (activity.caloriesBurned != null && activity.caloriesBurned! > 0) {
-      statWidgets.add(_buildTile('Kalorie', '${activity.caloriesBurned!.toStringAsFixed(0)} kcal'));
+      statWidgets.add(_buildTile('Calories', '${activity.caloriesBurned!.toStringAsFixed(0)} kcal'));
     }
     if (activity.durationMinutes != null && activity.durationMinutes! > 0) {
-      statWidgets.add(_buildTile('Czas trwania', '${activity.durationMinutes!.toStringAsFixed(1)} min'));
+      statWidgets.add(_buildTile('Duration', '${activity.durationMinutes!.toStringAsFixed(1)} min'));
     }
 
-    statWidgets.add(_buildTile('Data startu', activity.startTime.toString()));
-    statWidgets.add(_buildTile('Data końca', activity.endTime.toString()));
+    statWidgets.add(_buildTile('Start date', activity.startTime.toString()));
+    statWidgets.add(_buildTile('End date', activity.endTime.toString()));
 
     return Scaffold(
-      appBar: AppBar(title: Text('Podsumowanie aktywności')),
+      appBar: AppBar(title: Text('Activity summary')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

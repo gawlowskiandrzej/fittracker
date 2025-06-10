@@ -127,11 +127,11 @@ double _simulateAcceleration() {
   // Zapisz aktywność do Firestore
   try {
     final activityRef = await DatabaseService().addActivity(activityData);
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Aktywność zapisana')));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Activity saved successfully!')));
 
     // Po zapisaniu aktywności, zaktualizuj statystyki użytkownika
   } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Błąd zapisywania aktywności')));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error saving activity: $e')));
   }
 }
   String _formatTime(int seconds) {

@@ -159,13 +159,13 @@ class _WeighliftingWidgetState extends State<WeighliftingWidget> {
       final activityRef = await DatabaseService().addActivity(activityData);
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Aktywność zapisana')));
+      ).showSnackBar(SnackBar(content: Text('Activity saved successfully!')));
 
       // Po zapisaniu aktywności, zaktualizuj statystyki użytkownika
     } catch (e) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Błąd zapisywania aktywności')));
+      ).showSnackBar(SnackBar(content: Text('Error saving activity: $e')));
     }
   }
 

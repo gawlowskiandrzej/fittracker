@@ -51,7 +51,7 @@ void _startRunning() async {
         permission == LocationPermission.deniedForever) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Brak uprawnień do lokalizacji.')));
+      ).showSnackBar(SnackBar(content: Text('Location permission denied')));
       return;
     }
     setState(() {
@@ -142,12 +142,12 @@ void _startRunning() async {
 
   try {
     final activityRef = await _databaseService.addActivity(activityData);
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Aktywność zapisana')));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Activity saved successfully!')));
 
     // Po zapisaniu aktywności, zaktualizuj statystyki użytkownika
     _databaseService.updateActivityStats(user.uid, _km, _kalories, _seconds / 60);
   } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Błąd zapisywania aktywności')));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error saving activity: $e')));
   }
 }
 

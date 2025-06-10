@@ -180,7 +180,7 @@ Future<void> _saveUserRecord(String userId, int activityId, double value) async 
       'value': value,  
     });
   } catch (e) {
-    print('Błąd zapisywania rekordu użytkownika: $e');
+    print('Error while saving user profile $e');
   }
 }
 Future<void> updateActivityStats(String userId, double distance, double calories, double duration) async {
@@ -210,7 +210,7 @@ Future<void> updateActivityStats(String userId, double distance, double calories
       });
     }
   } catch (e) {
-    print('Błąd aktualizacji statystyk: $e');
+    print('Error saving user statistics $e');
   }
 }
 }
