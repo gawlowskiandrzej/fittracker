@@ -1,5 +1,6 @@
 import 'package:fittracker/models/activity.dart';
 import 'package:fittracker/theme/colors.dart';
+import 'package:fittracker/views/summary/activity_summary.dart';
 import 'package:flutter/material.dart';
 
 class RecentActivityTile extends StatelessWidget {
@@ -54,7 +55,15 @@ class RecentActivityTile extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.arrow_forward),
             onPressed: () {
-              // Handle navigation to activity details
+              if (activity == null) return;
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ActivitySummary(
+                      activity: activity!
+                    ),
+                  ),
+                );
             },
           ),
         ],
