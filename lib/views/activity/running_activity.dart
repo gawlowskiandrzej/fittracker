@@ -15,7 +15,6 @@ class RunningWidget extends StatefulWidget {
 }
 
 class _RunningWidgetState extends State<RunningWidget> {
-
   late Timer _timer;
   int _seconds = 0;
   double _km = 0.0;
@@ -29,11 +28,11 @@ class _RunningWidgetState extends State<RunningWidget> {
   final DatabaseService _databaseService = DatabaseService();
   double _previousAltitude = 0.0;
   double _currentAltitude = 0.0;
+  LocationAccuracy _currentAccuracy = LocationAccuracy.high;
   StreamSubscription<double>? _barometerSubscription;
   LatLng _simulatedPosition = LatLng(37.7749, -122.4194);
 
-
-void _restartRunning() {
+  void _restartRunning() {
     _timer.cancel();
     _positionStream?.cancel();
     setState(() {
@@ -45,7 +44,27 @@ void _restartRunning() {
     });
   }
 
-void _startRunning() async {
+  Future<void> _switchAccuracy(LocationAccuracy newAccuracy) async {
+    if (_currentAccuracy == newAccuracy) return;
+
+    _currentAccuracy = newAccuracy;
+    await _positionStream?.cancel();
+    _startLocationStream(); // restart streama z nowym accuracy
+  }
+
+  void _startLocationStream() {
+    final locationSettings = LocationSettings(
+      accuracy: _currentAccuracy,
+      distanceFilter: 1, // minimum 1m różnicy, żeby dostać update
+    );
+
+    // _positionStream = Geolocator.getPositionStream(locationSettings: locationSettings)
+    //     .listen((Position position) {
+    //   _handlePositionChange(position);
+    // });
+  }
+
+  void _startRunning() async {
     final permission = await Geolocator.requestPermission();
     if (permission == LocationPermission.denied ||
         permission == LocationPermission.deniedForever) {
@@ -72,15 +91,23 @@ void _startRunning() async {
         final newLat = _simulatedPosition.latitude + 0.0001;
         final newLng = _simulatedPosition.longitude + 0.0001;
         LatLng newPosition = LatLng(newLat, newLng);
+        double distance = 0.0;
         if (_route.isNotEmpty) {
-          final distance = Geolocator.distanceBetween(
+          distance = Geolocator.distanceBetween(
             _route.last.latitude,
             _route.last.longitude,
             newPosition.latitude,
             newPosition.longitude,
           );
           _km += distance / 1000.0;
-          double altitudeDiff = (_currentAltitude ?? 0) - (_previousAltitude ?? 0);
+          if (distance < 1) {
+            // Switch to low accuracy mode
+            return; // zbyt mała odległość, nie aktualizujemy
+          } else {
+            // Swtich to high accuracy mode
+          }
+          double altitudeDiff =
+              (_currentAltitude ?? 0) - (_previousAltitude ?? 0);
 
           // Przyjmujemy: pod górkę (dodatnia różnica) = +10%, z górki (ujemna różnica) = -10%
           double altitudeFactor = 1.0;
@@ -119,37 +146,48 @@ void _startRunning() async {
   }
 
   void _stopRunning() async {
-  _timer.cancel();
-  _positionStream?.cancel();
-  
-  final user = FirebaseAuth.instance.currentUser;
-  if (user == null) return; 
-  
-  setState(() {
-    _isActive = false;
-  });
+    _timer.cancel();
+    _positionStream?.cancel();
 
-  Map<String, dynamic> activityData = {
-    'userId': user.uid,
-    'startTime': Timestamp.fromDate(DateTime.now().subtract(Duration(seconds: _seconds))),
-    'endTime': Timestamp.fromDate(DateTime.now()),
-    'durationMinutes': double.parse((_seconds / 60).toStringAsFixed(2)),
-    'distanceKm': double.parse(_km.toStringAsFixed(2)),
-    'caloriesBurned': double.parse(_kalories.toStringAsFixed(2)),
-    'steps': 0, 
-    'type': 2,  
-  };
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
 
-  try {
-    final activityRef = await _databaseService.addActivity(activityData);
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Activity saved successfully!')));
+    setState(() {
+      _isActive = false;
+    });
 
-    // Po zapisaniu aktywności, zaktualizuj statystyki użytkownika
-    _databaseService.updateActivityStats(user.uid, _km, _kalories, _seconds / 60);
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error saving activity: $e')));
+    Map<String, dynamic> activityData = {
+      'userId': user.uid,
+      'startTime': Timestamp.fromDate(
+        DateTime.now().subtract(Duration(seconds: _seconds)),
+      ),
+      'endTime': Timestamp.fromDate(DateTime.now()),
+      'durationMinutes': double.parse((_seconds / 60).toStringAsFixed(2)),
+      'distanceKm': double.parse(_km.toStringAsFixed(2)),
+      'caloriesBurned': double.parse(_kalories.toStringAsFixed(2)),
+      'steps': 0,
+      'type': 2,
+    };
+
+    try {
+      final activityRef = await _databaseService.addActivity(activityData);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Activity saved successfully!')));
+
+      // Po zapisaniu aktywności, zaktualizuj statystyki użytkownika
+      _databaseService.updateActivityStats(
+        user.uid,
+        _km,
+        _kalories,
+        _seconds / 60,
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error saving activity: $e')));
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -238,11 +276,7 @@ void _startRunning() async {
                     ),
                     Column(
                       children: [
-                        const Icon(
-                          Icons.height,
-                          size: 28,
-                          color: Colors.green,
-                        ),
+                        const Icon(Icons.height, size: 28, color: Colors.green),
                         const SizedBox(height: 4),
                         Text(
                           '${_currentAltitude.toStringAsFixed(0)} m',
@@ -325,13 +359,14 @@ void _startRunning() async {
       ),
     );
   }
+
   @override
   void dispose() {
-  _timer.cancel();
-  _positionStream?.cancel();
-  _barometerSubscription?.cancel();
-  super.dispose();
-}
+    _timer.cancel();
+    _positionStream?.cancel();
+    _barometerSubscription?.cancel();
+    super.dispose();
+  }
 
   String _formatTime(int seconds) {
     final minutes = seconds ~/ 60;

@@ -24,8 +24,30 @@ class _CyclingWidgetState extends State<CyclingWidget> {
   final List<LatLng> _route = [];
   Set<Marker> _markers = {};
   Set<Polyline> _polylines = {};
+  LocationAccuracy _currentAccuracy =
+      LocationAccuracy.high; // domyślna dokładność
   final DatabaseService _databaseService = DatabaseService();
   LatLng _simulatedPosition = LatLng(37.7749, -122.4194);
+
+  Future<void> _switchAccuracy(LocationAccuracy newAccuracy) async {
+    if (_currentAccuracy == newAccuracy) return;
+
+    _currentAccuracy = newAccuracy;
+    await _positionStream?.cancel();
+    _startLocationStream(); // restart streama z nowym accuracy
+  }
+
+  void _startLocationStream() {
+    final locationSettings = LocationSettings(
+      accuracy: _currentAccuracy,
+      distanceFilter: 1, // minimum 1m różnicy, żeby dostać update
+    );
+
+    // _positionStream = Geolocator.getPositionStream(locationSettings: locationSettings)
+    //     .listen((Position position) {
+    //   _handlePositionChange(position);
+    // });
+  }
 
   void _startCycling() async {
     final permission = await Geolocator.requestPermission();
@@ -52,8 +74,9 @@ class _CyclingWidgetState extends State<CyclingWidget> {
         final newLat = _simulatedPosition.latitude + 0.0001;
         final newLng = _simulatedPosition.longitude + 0.0001;
         LatLng newPosition = LatLng(newLat, newLng);
+        double distance = 0.0;
         if (_route.isNotEmpty) {
-          final distance = Geolocator.distanceBetween(
+          distance = Geolocator.distanceBetween(
             _route.last.latitude,
             _route.last.longitude,
             newPosition.latitude,
@@ -61,6 +84,12 @@ class _CyclingWidgetState extends State<CyclingWidget> {
           );
           _km += distance / 1000.0;
           _kalories = _km * 35;
+        }
+        if (distance < 1.0) {
+          // Switch accuracy to low
+          return; // zbyt mała odległość, nie dodawaj do trasy
+        } else {
+          // Switch accuracy to high
         }
         _route.add(newPosition);
         _simulatedPosition = newPosition;
@@ -89,38 +118,48 @@ class _CyclingWidgetState extends State<CyclingWidget> {
   }
 
   void _stopCycling() async {
-  _timer.cancel();
-  _positionStream?.cancel();
-  
-  final user = FirebaseAuth.instance.currentUser;
-  if (user == null) return; 
-  
-  setState(() {
-    _isActive = false;
-  });
+    _timer.cancel();
+    _positionStream?.cancel();
+    _positionStream = null;
 
-  Map<String, dynamic> activityData = {
-    'userId': user.uid,
-    'startTime': Timestamp.fromDate(DateTime.now().subtract(Duration(seconds: _seconds))),
-    'endTime': Timestamp.fromDate(DateTime.now()),
-    'durationMinutes': double.parse((_seconds / 60).toStringAsFixed(2)),
-    'distanceKm': double.parse(_km.toStringAsFixed(2)),
-    'caloriesBurned': double.parse(_kalories.toStringAsFixed(2)),
-    'steps': 0, 
-    'type': 1,  
-  };
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
 
-  try {
-    final activityRef = await _databaseService.addActivity(activityData);
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Activity saved successfully!')));
+    setState(() {
+      _isActive = false;
+    });
 
-    _databaseService.updateActivityStats(user.uid, _km, _kalories, _seconds / 60);
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error saving activity: $e')));
+    Map<String, dynamic> activityData = {
+      'userId': user.uid,
+      'startTime': Timestamp.fromDate(
+        DateTime.now().subtract(Duration(seconds: _seconds)),
+      ),
+      'endTime': Timestamp.fromDate(DateTime.now()),
+      'durationMinutes': double.parse((_seconds / 60).toStringAsFixed(2)),
+      'distanceKm': double.parse(_km.toStringAsFixed(2)),
+      'caloriesBurned': double.parse(_kalories.toStringAsFixed(2)),
+      'steps': 0,
+      'type': 1,
+    };
+
+    try {
+      final activityRef = await _databaseService.addActivity(activityData);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Activity saved successfully!')));
+
+      _databaseService.updateActivityStats(
+        user.uid,
+        _km,
+        _kalories,
+        _seconds / 60,
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error saving activity: $e')));
+    }
   }
-}
-
-
 
   void _restartCycling() {
     _timer.cancel();
@@ -145,6 +184,8 @@ class _CyclingWidgetState extends State<CyclingWidget> {
     if (_isActive) {
       _timer.cancel();
     }
+    _positionStream?.cancel();
+    _positionStream = null;
     super.dispose();
   }
 
