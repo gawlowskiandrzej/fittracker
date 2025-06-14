@@ -56,14 +56,12 @@ class RecentActivityTile extends StatelessWidget {
             icon: const Icon(Icons.arrow_forward),
             onPressed: () {
               if (activity == null) return;
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ActivitySummary(
-                      activity: activity!
-                    ),
-                  ),
-                );
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ActivitySummary(activity: activity!),
+                ),
+              );
             },
           ),
         ],
