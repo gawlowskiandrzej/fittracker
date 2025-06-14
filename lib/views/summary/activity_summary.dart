@@ -1,12 +1,13 @@
 import 'package:fittracker/models/activity.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:sms_advanced/sms_advanced.dart';
+import 'package:telephony/telephony.dart';
 
 class ActivitySummary extends StatelessWidget {
   final Activity activity;
+  final telephony = Telephony.instance;
 
-  const ActivitySummary({super.key, required this.activity});
+  ActivitySummary({super.key, required this.activity});
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +43,7 @@ class ActivitySummary extends StatelessWidget {
     statWidgets.add(_buildTile('End date', activity.endTime.toString()));
 
     return Scaffold(
-      appBar: AppBar(title: Text('Activity summary')),
+      appBar: AppBar(title: const Text('Activity summary')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -59,7 +60,7 @@ class ActivitySummary extends StatelessWidget {
               child: SizedBox(
                 width: 200,
                 child: TextField(
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Phone number',
                     border: OutlineInputBorder(),
                   ),
@@ -70,11 +71,11 @@ class ActivitySummary extends StatelessWidget {
                 ),
               ),
             ),
-            Padding(padding: const EdgeInsets.symmetric(vertical: 16)),
+            const SizedBox(height: 16),
             Center(
               child: ElevatedButton(
-                child: Icon(Icons.sms),
-                onPressed: () => _sendSms(phoneNumber, activity),
+                child: const Icon(Icons.sms),
+                onPressed: () => sendDirectSms(phoneNumber, "activity"),
               ),
             ),
           ],
@@ -99,49 +100,28 @@ class ActivitySummary extends StatelessWidget {
     );
   }
 
-  void _sendSms(String number, Activity activity) async {
-    final StringBuffer buffer = StringBuffer();
-    buffer.writeln('Podsumowanie aktywności: ${activity.activityName}');
-    if (activity.distanceKm != null && activity.distanceKm! > 0) {
-      buffer.writeln('Dystans: ${activity.distanceKm!.toStringAsFixed(2)} km');
-    }
-    if (activity.steps != null && activity.steps! > 0) {
-      buffer.writeln('Kroki: ${activity.steps}');
-    }
-    if (activity.caloriesBurned != null && activity.caloriesBurned! > 0) {
-      buffer.writeln(
-        'Kalorie: ${activity.caloriesBurned!.toStringAsFixed(0)} kcal',
-      );
-    }
-    if (activity.durationMinutes != null && activity.durationMinutes! > 0) {
-      buffer.writeln(
-        'Czas trwania: ${activity.durationMinutes!.toStringAsFixed(1)} min',
-      );
-    }
-    buffer.writeln('Start: ${activity.startTime}');
-    buffer.writeln('Koniec: ${activity.endTime}');
-
-    // Upewnij się, że mamy uprawnienia
-    var status = await Permission.sms.status;
-    if (!status.isGranted) {
-      status = await Permission.sms.request();
+  Future<void> sendDirectSms(String number, String message) async {
+    try {
+      var status = await Permission.sms.status;
       if (!status.isGranted) {
-        debugPrint('Brak uprawnień do wysyłania SMS.');
+        status = await Permission.sms.request();
+        if (!status.isGranted) {
+          print("Brak uprawnień do SMS");
+          return;
+        }
+      }
+
+      final bool? permissionsGranted = await telephony.requestSmsPermissions;
+      if (permissionsGranted != true) {
+        print("Uprawnienia odrzucone");
         return;
       }
+
+      await telephony.sendSms(to: number, message: message);
+      print("SMS wysłany do $number: $message");
+    } catch (e, stacktrace) {
+      print("Błąd podczas wysyłania SMS: $e");
+      print("Stacktrace: $stacktrace");
     }
-
-    final SmsSender sender = SmsSender();
-    final SmsMessage message = SmsMessage(number, buffer.toString());
-
-    message.onStateChanged.listen((state) {
-      if (state == SmsMessageState.Sent) {
-        debugPrint("SMS wysłany");
-      } else if (state == SmsMessageState.Fail) {
-        debugPrint("Błąd wysyłania SMS");
-      }
-    });
-
-    sender.sendSms(message);
   }
 }
