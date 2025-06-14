@@ -3,44 +3,57 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:telephony/telephony.dart';
 
-class ActivitySummary extends StatelessWidget {
+class ActivitySummary extends StatefulWidget {
   final Activity activity;
-  final telephony = Telephony.instance;
 
   ActivitySummary({super.key, required this.activity});
+
+  @override
+  State<ActivitySummary> createState() => _ActivitySummaryState();
+}
+
+class _ActivitySummaryState extends State<ActivitySummary> {
+  final telephony = Telephony.instance;
 
   @override
   Widget build(BuildContext context) {
     final List<Widget> statWidgets = [];
     String phoneNumber = '';
 
-    if (activity.distanceKm != null && activity.distanceKm! > 0) {
-      statWidgets.add(
-        _buildTile('Distance', '${activity.distanceKm!.toStringAsFixed(2)} km'),
-      );
-    }
-    if (activity.steps != null && activity.steps! > 0) {
-      statWidgets.add(_buildTile('Steps', '${activity.steps}'));
-    }
-    if (activity.caloriesBurned != null && activity.caloriesBurned! > 0) {
+    if (widget.activity.distanceKm != null && widget.activity.distanceKm! > 0) {
       statWidgets.add(
         _buildTile(
-          'Calories',
-          '${activity.caloriesBurned!.toStringAsFixed(0)} kcal',
+          'Distance',
+          '${widget.activity.distanceKm!.toStringAsFixed(2)} km',
         ),
       );
     }
-    if (activity.durationMinutes != null && activity.durationMinutes! > 0) {
+    if (widget.activity.steps != null && widget.activity.steps! > 0) {
+      statWidgets.add(_buildTile('Steps', '${widget.activity.steps}'));
+    }
+    if (widget.activity.caloriesBurned != null &&
+        widget.activity.caloriesBurned! > 0) {
+      statWidgets.add(
+        _buildTile(
+          'Calories',
+          '${widget.activity.caloriesBurned!.toStringAsFixed(0)} kcal',
+        ),
+      );
+    }
+    if (widget.activity.durationMinutes != null &&
+        widget.activity.durationMinutes! > 0) {
       statWidgets.add(
         _buildTile(
           'Duration',
-          '${activity.durationMinutes!.toStringAsFixed(1)} min',
+          '${widget.activity.durationMinutes!.toStringAsFixed(1)} min',
         ),
       );
     }
 
-    statWidgets.add(_buildTile('Start date', activity.startTime.toString()));
-    statWidgets.add(_buildTile('End date', activity.endTime.toString()));
+    statWidgets.add(
+      _buildTile('Start date', widget.activity.startTime.toString()),
+    );
+    statWidgets.add(_buildTile('End date', widget.activity.endTime.toString()));
 
     return Scaffold(
       appBar: AppBar(title: const Text('Activity summary')),
@@ -50,7 +63,7 @@ class ActivitySummary extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              activity.activityName!,
+              widget.activity.activityName!,
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
@@ -75,7 +88,7 @@ class ActivitySummary extends StatelessWidget {
             Center(
               child: ElevatedButton(
                 child: const Icon(Icons.sms),
-                onPressed: () => sendDirectSms(phoneNumber, "activity"),
+                onPressed: () => sendDirectSms(phoneNumber, widget.activity),
               ),
             ),
           ],
@@ -100,13 +113,35 @@ class ActivitySummary extends StatelessWidget {
     );
   }
 
-  Future<void> sendDirectSms(String number, String message) async {
+  Future<void> sendDirectSms(String number, Activity activity) async {
+    String message = "";
+    message += 'Summary of activity: ${activity.activityName}\n';
+    if (activity.distanceKm != null && activity.distanceKm! > 0) {
+      message += 'Distance: ${activity.distanceKm!.toStringAsFixed(2)} km\n';
+    }
+    if (activity.steps != null && activity.steps! > 0) {
+      message += 'Steps: ${activity.steps}';
+    }
+    if (activity.caloriesBurned != null && activity.caloriesBurned! > 0) {
+      message +=
+          'Calories: ${activity.caloriesBurned!.toStringAsFixed(0)} kcal\n';
+    }
+
+    // Załóżmy, że endTime i startTime to DateTime, więc wyliczamy Duration
+    final duration = activity.endTime!.difference(activity.startTime!);
+    message += 'Overall activity time: ${duration.inMinutes}min';
+    print(message);
+
+    await _sendSms(number, message);
+  }
+
+  Future<void> _sendSms(String number, String message) async {
     try {
       var status = await Permission.sms.status;
       if (!status.isGranted) {
         status = await Permission.sms.request();
         if (!status.isGranted) {
-          print("Brak uprawnień do SMS");
+          print("Nie masz odpowiednich uprawnień");
           return;
         }
       }
@@ -118,8 +153,14 @@ class ActivitySummary extends StatelessWidget {
       }
 
       await telephony.sendSms(to: number, message: message);
-      print("SMS wysłany do $number: $message");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Podsumowanie wysłane pomyślnie!')),
+      );
+      print("SMS wysłany do $number");
     } catch (e, stacktrace) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Nie można wysłać podsumowania!')));
       print("Błąd podczas wysyłania SMS: $e");
       print("Stacktrace: $stacktrace");
     }
