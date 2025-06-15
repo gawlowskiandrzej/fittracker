@@ -25,45 +25,47 @@ class _WeighliftingWidgetState extends State<WeighliftingWidget> {
   int _restTime = 30;
   bool _isBreakStarted = false;
   int _breakTimeLeft = 0;
-  final int _timeToBreak = 30;
   bool _isActive = false;
   bool _movingUp = false;
   bool _waitingForReturn = false;
   final double _liftThreshold = 5.0; // próg przyspieszenia w górę
   final double _returnThreshold = 5.0; // próg przyspieszenia w dół
-  late double _previousAccelerationY;
+  late StreamSubscription<AccelerometerEvent> _accelerometerSubscription;
+
+  DateTime _lastRepTime = DateTime.now();
+  final Duration _repCooldown = Duration(
+    milliseconds: 800,
+  ); // minimalny czas między powtórzeniami
+
+  @override
+  void dispose() {
+    _accelerometerSubscription.cancel();
+    if (_timer.isActive) {
+      _timer.cancel();
+    }
+    super.dispose();
+  }
 
   @override
   void initState() {
     super.initState();
-
-    // Inicjalizacja poprzedniej wartości dla detekcji skoków
-    _previousAccelerationY = 0.0;
-
-    // Nasłuchiwanie danych z akcelerometru
-    accelerometerEvents.listen((AccelerometerEvent event) {
-      // Zmienna "event" zawiera dane z akcelerometru (x, y, z)
-      // Skoki mogą być wykrywane na podstawie zmiany w osi Y (czyli przyspieszenie w pionie)
-      if (_checkRepCycle(event)) {
-        _onLiftDetect();
-      }
-    });
   }
 
   bool _checkRepCycle(AccelerometerEvent event) {
     double y = event.y;
 
+    // Ruch w górę
     if (!_movingUp && y > _liftThreshold) {
       _movingUp = true;
       _waitingForReturn = true;
-      return false; // Jeszcze nie liczymy powtórzenia, dopiero połowa cyklu
+      return false;
     }
 
-    if (_movingUp && _waitingForReturn && y < _returnThreshold) {
-      // Pełny cykl: góra i powrót
+    // Powrót z ruchu w górę
+    if (_movingUp && _waitingForReturn && y < -_returnThreshold) {
       _movingUp = false;
       _waitingForReturn = false;
-      return true; // To jest pełne powtórzenie
+      return true;
     }
 
     return false;
@@ -77,23 +79,7 @@ class _WeighliftingWidgetState extends State<WeighliftingWidget> {
   }
 
   double _calculateCalories(int reps) {
-    // Prosty wzór do obliczenia kalorii na podstawie liczby skoków
-    // Zakładając, że średnio jeden skok spala 0.05 kalorii
-    return reps * 1;
-  }
-
-  bool _isLifting(AccelerometerEvent event) {
-    double accelerationThreshold = 12.0;
-    double currentAccelerationY = event.y;
-
-    // Jeśli zmiana w osi Y jest wystarczająca, uznajemy to za skok
-    if ((currentAccelerationY - _previousAccelerationY).abs() >
-        accelerationThreshold) {
-      _previousAccelerationY = currentAccelerationY;
-      return true;
-    }
-
-    return false;
+    return reps * 0.50;
   }
 
   void _startLifting() async {
@@ -105,26 +91,22 @@ class _WeighliftingWidgetState extends State<WeighliftingWidget> {
       _reps = 0;
       _sets = 0;
     });
-
+    _accelerometerSubscription =
+        accelerometerEvents.listen((AccelerometerEvent event) {
+              if (_checkRepCycle(event)) {
+                final now = DateTime.now();
+                if (now.difference(_lastRepTime) > _repCooldown) {
+                  _lastRepTime = now;
+                  _onLiftDetect();
+                }
+              }
+            })
+            as StreamSubscription<AccelerometerEvent>;
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
       setState(() {
         _seconds++;
-
-        double accelerationY = _simulateAcceleration();
-
-        if (!_isBreakStarted &&
-            _isLifting(
-              AccelerometerEvent(0.0, accelerationY, 0.0, DateTime.now()),
-            )) {
-          _onLiftDetect();
-        }
       });
     });
-  }
-
-  double _simulateAcceleration() {
-    // Symulujemy zmianę przyspieszenia (oscy Y) - losowo w zakresie -15 do 15
-    return (Random().nextDouble() - 0.5) * 30.0;
   }
 
   void _stopLifting() async {
@@ -396,6 +378,7 @@ class _WeighliftingWidgetState extends State<WeighliftingWidget> {
                       ),
                     ],
                   ),
+                  SizedBox(height: 10, width: 10),
                   if (_isActive)
                     Column(
                       children: [

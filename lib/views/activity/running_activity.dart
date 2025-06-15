@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fittracker/services/database.dart';
-import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:async';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -23,14 +22,15 @@ class _RunningWidgetState extends State<RunningWidget> {
   late GoogleMapController _mapController;
   StreamSubscription<Position>? _positionStream;
   final List<LatLng> _route = [];
-  Set<Marker> _markers = {};
   Set<Polyline> _polylines = {};
   final DatabaseService _databaseService = DatabaseService();
   double _previousAltitude = 0.0;
   double _currentAltitude = 0.0;
+  DateTime? _lastMovementTime;
+  Timer? _inactivityTimer;
   LocationAccuracy _currentAccuracy = LocationAccuracy.high;
-  StreamSubscription<double>? _barometerSubscription;
-  LatLng _simulatedPosition = LatLng(37.7749, -122.4194);
+  int _stepCount = 0;
+  //StreamSubscription<double>? _barometerSubscription;
 
   void _restartRunning() {
     _timer.cancel();
@@ -40,6 +40,9 @@ class _RunningWidgetState extends State<RunningWidget> {
       _seconds = 0;
       _km = 0.0;
       _kalories = 0.0;
+      _stepCount = 0;
+      _currentAltitude = 0.0;
+      _previousAltitude = 0.0;
       _route.clear();
     });
   }
@@ -55,13 +58,74 @@ class _RunningWidgetState extends State<RunningWidget> {
   void _startLocationStream() {
     final locationSettings = LocationSettings(
       accuracy: _currentAccuracy,
-      distanceFilter: 1, // minimum 1m różnicy, żeby dostać update
+      distanceFilter: 1,
     );
 
-    // _positionStream = Geolocator.getPositionStream(locationSettings: locationSettings)
-    //     .listen((Position position) {
-    //   _handlePositionChange(position);
-    // });
+    _positionStream = Geolocator.getPositionStream(
+      locationSettings: locationSettings,
+    ).listen((Position position) {
+      _handlePositionChange(position);
+    });
+  }
+
+  void _handlePositionChange(Position position) {
+    LatLng newPosition = LatLng(position.latitude, position.longitude);
+    double distance = 0.0;
+
+    if (_route.isNotEmpty) {
+      distance = Geolocator.distanceBetween(
+        _route.last.latitude,
+        _route.last.longitude,
+        newPosition.latitude,
+        newPosition.longitude,
+      );
+      if (distance >= 0.5) {
+        _km += distance / 1000;
+
+        double altitudeDiff = position.altitude - _previousAltitude;
+        _previousAltitude = position.altitude;
+
+        double altitudeFactor = 1.0;
+        if (altitudeDiff > 0.5) {
+          altitudeFactor = 1.1;
+        } else if (altitudeDiff < -0.5) {
+          altitudeFactor = 0.9;
+        }
+
+        _kalories += (distance / 1000) * 35 * altitudeFactor;
+
+        // Szacowanie kroków (średni krok = 0.75 m)
+        int steps = (distance / 0.75).round();
+        _stepCount += steps;
+
+        _lastMovementTime = DateTime.now();
+        _switchAccuracy(LocationAccuracy.high); // ruch = wysoka dokładność
+
+        _inactivityTimer?.cancel();
+        _inactivityTimer = Timer(Duration(seconds: 4), () {
+          _switchAccuracy(LocationAccuracy.low);
+        });
+      }
+    } else {
+      _previousAltitude = position.altitude;
+      _lastMovementTime = DateTime.now();
+    }
+
+    setState(() {
+      _route.add(newPosition);
+      _currentAltitude = position.altitude;
+      _polylines = {
+        Polyline(
+          polylineId: PolylineId('route'),
+          points: _route,
+          color: Colors.blue,
+          width: 4,
+        ),
+      };
+
+      // Kamera śledzi pozycję
+      _mapController.animateCamera(CameraUpdate.newLatLng(newPosition));
+    });
   }
 
   void _startRunning() async {
@@ -73,6 +137,7 @@ class _RunningWidgetState extends State<RunningWidget> {
       ).showSnackBar(SnackBar(content: Text('Location permission denied')));
       return;
     }
+
     setState(() {
       _isActive = true;
       _seconds = 0;
@@ -80,67 +145,15 @@ class _RunningWidgetState extends State<RunningWidget> {
       _kalories = 0.0;
       _currentAltitude = 0.0;
       _previousAltitude = 0.0;
+      _stepCount = 0;
       _route.clear();
-      _simulatedPosition = LatLng(37.7749, -122.4194);
     });
+
+    _startLocationStream();
 
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
       setState(() {
         _seconds++;
-        //_km = _seconds / 60; // symulacja 1 km na minutę
-        final newLat = _simulatedPosition.latitude + 0.0001;
-        final newLng = _simulatedPosition.longitude + 0.0001;
-        LatLng newPosition = LatLng(newLat, newLng);
-        double distance = 0.0;
-        if (_route.isNotEmpty) {
-          distance = Geolocator.distanceBetween(
-            _route.last.latitude,
-            _route.last.longitude,
-            newPosition.latitude,
-            newPosition.longitude,
-          );
-          _km += distance / 1000.0;
-          if (distance < 1) {
-            // Switch to low accuracy mode
-            return; // zbyt mała odległość, nie aktualizujemy
-          } else {
-            // Swtich to high accuracy mode
-          }
-          double altitudeDiff =
-              (_currentAltitude ?? 0) - (_previousAltitude ?? 0);
-
-          // Przyjmujemy: pod górkę (dodatnia różnica) = +10%, z górki (ujemna różnica) = -10%
-          double altitudeFactor = 1.0;
-          if (altitudeDiff > 0.5) {
-            altitudeFactor = 1.1;
-          } else if (altitudeDiff < -0.5) {
-            altitudeFactor = 0.9;
-          }
-
-          _kalories += (distance / 1000.0) * 35 * altitudeFactor;
-        }
-        _route.add(newPosition);
-        _simulatedPosition = newPosition;
-        _mapController.animateCamera(
-          CameraUpdate.newLatLng(_simulatedPosition),
-        );
-        _markers = {
-          Marker(
-            markerId: MarkerId('current'),
-            position: _simulatedPosition,
-            icon: BitmapDescriptor.defaultMarkerWithHue(
-              BitmapDescriptor.hueAzure,
-            ),
-          ),
-        };
-        _polylines = {
-          Polyline(
-            polylineId: PolylineId('route'),
-            points: _route,
-            color: Colors.blue,
-            width: 4,
-          ),
-        };
       });
     });
   }
@@ -165,7 +178,7 @@ class _RunningWidgetState extends State<RunningWidget> {
       'durationMinutes': double.parse((_seconds / 60).toStringAsFixed(2)),
       'distanceKm': double.parse(_km.toStringAsFixed(2)),
       'caloriesBurned': double.parse(_kalories.toStringAsFixed(2)),
-      'steps': 0,
+      'steps': _stepCount,
       'type': 2,
     };
 
@@ -291,6 +304,27 @@ class _RunningWidgetState extends State<RunningWidget> {
                         ),
                       ],
                     ),
+                    Column(
+                      children: [
+                        const Icon(
+                          Icons.directions_walk,
+                          size: 28,
+                          color: Colors.green,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${_stepCount.toStringAsFixed(0)}',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const Text(
+                          'Steps',
+                          style: TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -308,7 +342,6 @@ class _RunningWidgetState extends State<RunningWidget> {
                     zoom: 14,
                   ),
                   polylines: _polylines,
-                  markers: _markers,
                   onMapCreated: (controller) {
                     _mapController = controller;
                   },
@@ -337,6 +370,7 @@ class _RunningWidgetState extends State<RunningWidget> {
                       ),
                     ],
                   ),
+                  SizedBox(height: 10, width: 10),
                   if (_isActive)
                     Column(
                       children: [
@@ -364,7 +398,8 @@ class _RunningWidgetState extends State<RunningWidget> {
   void dispose() {
     _timer.cancel();
     _positionStream?.cancel();
-    _barometerSubscription?.cancel();
+    _inactivityTimer?.cancel();
+    //_barometerSubscription?.cancel();
     super.dispose();
   }
 

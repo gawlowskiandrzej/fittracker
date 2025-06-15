@@ -24,10 +24,11 @@ class _CyclingWidgetState extends State<CyclingWidget> {
   final List<LatLng> _route = [];
   Set<Marker> _markers = {};
   Set<Polyline> _polylines = {};
+  DateTime? _lastMovementTime;
+  Timer? _inactivityTimer;
   LocationAccuracy _currentAccuracy =
       LocationAccuracy.high; // domyślna dokładność
   final DatabaseService _databaseService = DatabaseService();
-  LatLng _simulatedPosition = LatLng(37.7749, -122.4194);
 
   Future<void> _switchAccuracy(LocationAccuracy newAccuracy) async {
     if (_currentAccuracy == newAccuracy) return;
@@ -40,13 +41,56 @@ class _CyclingWidgetState extends State<CyclingWidget> {
   void _startLocationStream() {
     final locationSettings = LocationSettings(
       accuracy: _currentAccuracy,
-      distanceFilter: 1, // minimum 1m różnicy, żeby dostać update
+      distanceFilter: 1,
     );
 
-    // _positionStream = Geolocator.getPositionStream(locationSettings: locationSettings)
-    //     .listen((Position position) {
-    //   _handlePositionChange(position);
-    // });
+    _positionStream = Geolocator.getPositionStream(
+      locationSettings: locationSettings,
+    ).listen((Position position) {
+      _handlePositionChange(position);
+    });
+  }
+
+  void _handlePositionChange(Position position) {
+    LatLng newPosition = LatLng(position.latitude, position.longitude);
+    double distance = 0.0;
+
+    if (_route.isNotEmpty) {
+      distance = Geolocator.distanceBetween(
+        _route.last.latitude,
+        _route.last.longitude,
+        newPosition.latitude,
+        newPosition.longitude,
+      );
+
+      if (distance >= 0.5) {
+        _km += distance / 1000;
+        _kalories += (distance / 100) * 35;
+
+        _lastMovementTime = DateTime.now();
+        _switchAccuracy(LocationAccuracy.high); // ruch = wysoka dokładność
+
+        _inactivityTimer?.cancel();
+        _inactivityTimer = Timer(Duration(seconds: 4), () {
+          _switchAccuracy(LocationAccuracy.low);
+        });
+      }
+    } else {
+      _lastMovementTime = DateTime.now();
+    }
+
+    setState(() {
+      _route.add(newPosition);
+      _polylines = {
+        Polyline(
+          polylineId: PolylineId('route'),
+          points: _route,
+          color: Colors.blue,
+          width: 4,
+        ),
+      };
+      _mapController.animateCamera(CameraUpdate.newLatLng(newPosition));
+    });
   }
 
   void _startCycling() async {
@@ -64,55 +108,13 @@ class _CyclingWidgetState extends State<CyclingWidget> {
       _km = 0.0;
       _kalories = 0.0;
       _route.clear();
-      _simulatedPosition = LatLng(37.7749, -122.4194);
     });
+
+    _startLocationStream();
 
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
       setState(() {
         _seconds++;
-        //_km = _seconds / 60; // symulacja 1 km na minutę
-        final newLat = _simulatedPosition.latitude + 0.0001;
-        final newLng = _simulatedPosition.longitude + 0.0001;
-        LatLng newPosition = LatLng(newLat, newLng);
-        double distance = 0.0;
-        if (_route.isNotEmpty) {
-          distance = Geolocator.distanceBetween(
-            _route.last.latitude,
-            _route.last.longitude,
-            newPosition.latitude,
-            newPosition.longitude,
-          );
-          _km += distance / 1000.0;
-          _kalories = _km * 35;
-        }
-        if (distance < 1.0) {
-          // Switch accuracy to low
-          return; // zbyt mała odległość, nie dodawaj do trasy
-        } else {
-          // Switch accuracy to high
-        }
-        _route.add(newPosition);
-        _simulatedPosition = newPosition;
-        _mapController.animateCamera(
-          CameraUpdate.newLatLng(_simulatedPosition),
-        );
-        _markers = {
-          Marker(
-            markerId: MarkerId('current'),
-            position: _simulatedPosition,
-            icon: BitmapDescriptor.defaultMarkerWithHue(
-              BitmapDescriptor.hueAzure,
-            ),
-          ),
-        };
-        _polylines = {
-          Polyline(
-            polylineId: PolylineId('route'),
-            points: _route,
-            color: Colors.blue,
-            width: 4,
-          ),
-        };
       });
     });
   }
@@ -186,6 +188,7 @@ class _CyclingWidgetState extends State<CyclingWidget> {
     }
     _positionStream?.cancel();
     _positionStream = null;
+    _inactivityTimer?.cancel();
     super.dispose();
   }
 
@@ -292,7 +295,6 @@ class _CyclingWidgetState extends State<CyclingWidget> {
                     zoom: 14,
                   ),
                   polylines: _polylines,
-                  markers: _markers,
                   onMapCreated: (controller) {
                     _mapController = controller;
                   },
@@ -321,6 +323,7 @@ class _CyclingWidgetState extends State<CyclingWidget> {
                       ),
                     ],
                   ),
+                  SizedBox(height: 10, width: 10),
                   if (_isActive)
                     Column(
                       children: [

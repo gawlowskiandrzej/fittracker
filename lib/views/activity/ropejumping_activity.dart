@@ -1,5 +1,4 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -23,37 +22,28 @@ class _RoperJumpingWidgetState extends State<RoperJumpingWidget> {
   double _km = 0.0;
   double _kalories = 0.0;
   int _jumps = 0;
+  double _lastPeakTime = 0.0;
+  final double _minPeakInterval = 500;
   bool _isActive = false;
-  late double _previousAccelerationY;
 
   @override
   void initState() {
     super.initState();
 
-    // Inicjalizacja poprzedniej wartości dla detekcji skoków
-    _previousAccelerationY = 0.0;
-
-    // Nasłuchiwanie danych z akcelerometru
     accelerometerEvents.listen((AccelerometerEvent event) {
-      // Zmienna "event" zawiera dane z akcelerometru (x, y, z)
-      // Skoki mogą być wykrywane na podstawie zmiany w osi Y (czyli przyspieszenie w pionie)
-      if (_isJumping(event)) {
+      if (_isActive && _isJumping(event)) {
         _onJumpDetected();
       }
     });
   }
 
   bool _isJumping(AccelerometerEvent event) {
-    // Prosty algorytm do wykrywania skoku
-    // Sprawdzamy, czy zmiana w osi Y jest wystarczająco duża, aby uznać to za skok
-    double accelerationThreshold =
-        12.0; // Próg przyspieszenia dla wykrywania skoku
-    double currentAccelerationY = event.y;
+    double accelerationY = event.y;
+    double now = DateTime.now().millisecondsSinceEpoch.toDouble();
 
-    // Jeśli zmiana w osi Y jest wystarczająca, uznajemy to za skok
-    if ((currentAccelerationY - _previousAccelerationY).abs() >
-        accelerationThreshold) {
-      _previousAccelerationY = currentAccelerationY;
+    // Prosty warunek: jeśli y-przyspieszenie przekracza próg i minął odstęp czasu od ostatniego skoku
+    if (accelerationY > 15.0 && (now - _lastPeakTime) > _minPeakInterval) {
+      _lastPeakTime = now;
       return true;
     }
 
@@ -68,12 +58,7 @@ class _RoperJumpingWidgetState extends State<RoperJumpingWidget> {
   }
 
   double _calculateCalories(int jumps) {
-    return jumps * 0.05;
-  }
-
-  double _simulateAcceleration() {
-    // Symulujemy zmianę przyspieszenia (oscy Y) - losowo w zakresie -15 do 15
-    return (Random().nextDouble() - 0.5) * 30.0;
+    return jumps * 0.55;
   }
 
   void _startJumping() async {
@@ -88,29 +73,30 @@ class _RoperJumpingWidgetState extends State<RoperJumpingWidget> {
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
       setState(() {
         _seconds++;
+        //_kalories = _calculateCalories(_jumps);
 
         // Symulacja zmiany pozycji GPS (jeśli chcesz także dodać symulację ruchu po mapie)
-        double newLat =
-            37.7749 +
-            (Random().nextDouble() - 0.5) *
-                0.0001; // losowa zmiana szerokości geograficznej
-        double newLng =
-            -122.4194 +
-            (Random().nextDouble() - 0.5) *
-                0.0001; // losowa zmiana długości geograficznej
+        //   double newLat =
+        //       37.7749 +
+        //       (Random().nextDouble() - 0.5) *
+        //           0.0001; // losowa zmiana szerokości geograficznej
+        //   double newLng =
+        //       -122.4194 +
+        //       (Random().nextDouble() - 0.5) *
+        //           0.0001; // losowa zmiana długości geograficznej
 
-        LatLng newPosition = LatLng(newLat, newLng);
+        //   LatLng newPosition = LatLng(newLat, newLng);
 
-        // Symulacja zmiany danych akcelerometru (np. osi Y)
-        // Generujemy losowe przyspieszenie, które będzie symulować skok
-        double accelerationY = _simulateAcceleration();
+        //   // Symulacja zmiany danych akcelerometru (np. osi Y)
+        //   // Generujemy losowe przyspieszenie, które będzie symulować skok
+        //   double accelerationY = _simulateAcceleration();
 
-        // Sprawdzamy, czy nastąpił "skok" na podstawie zmiany w przyspieszeniu (na osi Y)
-        if (_isJumping(
-          AccelerometerEvent(0.0, accelerationY, 0.0, DateTime.now()),
-        )) {
-          _onJumpDetected();
-        }
+        //   // Sprawdzamy, czy nastąpił "skok" na podstawie zmiany w przyspieszeniu (na osi Y)
+        //   if (_isJumping(
+        //     AccelerometerEvent(0.0, accelerationY, 0.0, DateTime.now()),
+        //   )) {
+        //     _onJumpDetected();
+        //   }
       });
     });
   }
@@ -283,6 +269,7 @@ class _RoperJumpingWidgetState extends State<RoperJumpingWidget> {
                       ),
                     ],
                   ),
+                  SizedBox(height: 10, width: 10),
                   if (_isActive)
                     Column(
                       children: [
