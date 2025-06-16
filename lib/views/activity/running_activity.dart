@@ -178,6 +178,9 @@ class _RunningWidgetState extends State<RunningWidget> {
       'durationMinutes': double.parse((_seconds / 60).toStringAsFixed(2)),
       'distanceKm': double.parse(_km.toStringAsFixed(2)),
       'caloriesBurned': double.parse(_kalories.toStringAsFixed(2)),
+      'reps': 0,
+      'sets': 0,
+      'jumps': 0,
       'steps': _stepCount,
       'type': 2,
     };

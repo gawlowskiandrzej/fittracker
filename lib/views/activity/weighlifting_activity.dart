@@ -131,10 +131,11 @@ class _WeighliftingWidgetState extends State<WeighliftingWidget> {
       'durationMinutes': double.parse((_seconds / 60).toStringAsFixed(2)),
       'distanceKm': 0,
       'caloriesBurned': double.parse(_kalories.toStringAsFixed(2)),
-      'steps':
-          0, // Jeśli nie monitorujesz kroków, to będzie 0, możesz to zaktualizować
-      'type':
-          3, // Typ aktywności - tutaj zakładamy "cycling", który ma id 1 w kolekcji activity_types
+      'reps': _reps,
+      'sets': _sets,
+      'jumps': 0,
+      'steps': 0, 
+      'type': 3,
     };
     // Zapisz aktywność do Firestore
     try {
