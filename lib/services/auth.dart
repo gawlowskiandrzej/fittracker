@@ -1,8 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fittracker/models/user.dart';
 
-class AuthService{
-  
+class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Stream<MyUser> get user {
@@ -10,7 +9,9 @@ class AuthService{
   }
 
   MyUser _userFromFirebaseUser(User? user) {
-    return user != null ? MyUser(uid: user.uid, email: user.email!) : MyUser(uid: "-1", email: "null");
+    return user != null
+        ? MyUser(uid: user.uid, email: user.email!)
+        : MyUser(uid: "-1", email: "null");
   }
 
   // sign in anon
@@ -36,7 +37,10 @@ class AuthService{
 
   Future signInWithEmailAndPassword(String email, String password) async {
     try {
-      UserCredential result = await _auth.signInWithEmailAndPassword(email: email, password: password);
+      UserCredential result = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
       User? user = result.user;
       return _userFromFirebaseUser(user);
     } catch (e) {
@@ -47,7 +51,10 @@ class AuthService{
 
   Future registerWithEmailAndPassword(String email, String password) async {
     try {
-      UserCredential result = await _auth.createUserWithEmailAndPassword(email: email, password: password);
+      UserCredential result = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
       User? user = result.user;
       return _userFromFirebaseUser(user);
     } catch (e) {

@@ -34,25 +34,34 @@ class RecordStats extends StatelessWidget {
             ListTile(
               leading: Icon(Icons.timer),
               title: Text('Longest training'),
-              subtitle: Text(
-                '${longestTraining?.durationMinutes} minutes – ${longestTraining?.activityName} – ${DateFormat('yyyy-MM-dd HH:mm:ss').format(longestTraining?.endTime ?? DateTime.now())}',
-              ),
+              subtitle:
+                  longestTraining == null
+                      ? Text('No record')
+                      : Text(
+                        '${longestTraining.durationMinutes} minutes – ${longestTraining.activityName} – ${DateFormat('yyyy-MM-dd HH:mm:ss').format(longestTraining?.endTime ?? DateTime.now())}',
+                      ),
               titleTextStyle: TextStyle(color: AppColors.secondary),
             ),
             ListTile(
               leading: Icon(Icons.local_fire_department),
               title: Text('Most calories burned'),
-              subtitle: Text(
-                '${mostCaloriesBurned?.caloriesBurned} kcal – ${mostCaloriesBurned?.activityName} – ${DateFormat('yyyy-MM-dd HH:mm:ss').format(mostCaloriesBurned?.endTime ?? DateTime.now())}',
-              ),
+              subtitle:
+                  mostCaloriesBurned == null
+                      ? Text('No record')
+                      : Text(
+                        '${mostCaloriesBurned.caloriesBurned} kcal – ${mostCaloriesBurned.activityName} – ${DateFormat('yyyy-MM-dd HH:mm:ss').format(mostCaloriesBurned?.endTime ?? DateTime.now())}',
+                      ),
               titleTextStyle: TextStyle(color: AppColors.secondary),
             ),
             ListTile(
               leading: Icon(Icons.add_road),
               title: Text('The longest traning distance'),
-              subtitle: Text(
-                '${longestDistance?.distanceKm} km – ${longestDistance?.activityName} – ${DateFormat('yyyy-MM-dd HH:mm:ss').format(longestDistance?.endTime ?? DateTime.now())}',
-              ),
+              subtitle:
+                  longestDistance == null
+                      ? Text('No record')
+                      : Text(
+                        '${longestDistance.distanceKm} km – ${longestDistance.activityName} – ${DateFormat('yyyy-MM-dd HH:mm:ss').format(longestDistance?.endTime ?? DateTime.now())}',
+                      ),
               titleTextStyle: TextStyle(color: AppColors.secondary),
             ),
           ],

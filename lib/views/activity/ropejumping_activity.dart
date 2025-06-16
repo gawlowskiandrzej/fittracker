@@ -125,8 +125,10 @@ class _RoperJumpingWidgetState extends State<RoperJumpingWidget> {
       'reps': 0,
       'sets': 0,
       'jumps': double.parse(_jumps.toStringAsFixed(2)),
-      'steps': 0, // Jeśli nie monitorujesz kroków, to będzie 0, możesz to zaktualizować
-      'type': 4, // Typ aktywności - tutaj zakładamy "cycling", który ma id 1 w kolekcji activity_types
+      'steps':
+          0, // Jeśli nie monitorujesz kroków, to będzie 0, możesz to zaktualizować
+      'type':
+          4, // Typ aktywności - tutaj zakładamy "cycling", który ma id 1 w kolekcji activity_types
     };
     // Zapisz aktywność do Firestore
     try {
