@@ -140,6 +140,9 @@ class _CyclingWidgetState extends State<CyclingWidget> {
       'durationMinutes': double.parse((_seconds / 60).toStringAsFixed(2)),
       'distanceKm': double.parse(_km.toStringAsFixed(2)),
       'caloriesBurned': double.parse(_kalories.toStringAsFixed(2)),
+      'reps': 0,
+      'sets': 0,
+      'jumps':0,
       'steps': 0,
       'type': 1,
     };
