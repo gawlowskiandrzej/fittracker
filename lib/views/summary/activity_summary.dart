@@ -122,6 +122,15 @@ class _ActivitySummaryState extends State<ActivitySummary> {
     if (activity.steps != null && activity.steps! > 0) {
       message += 'Steps: ${activity.steps}';
     }
+    if (activity.jumps != null && activity.jumps! > 0) {
+      message += 'Rope jumps: ${activity.jumps}';
+    }
+    if (activity.reps != null && activity.reps! > 0) {
+      message += 'Weightlift reps: ${activity.reps}';
+    }
+    if (activity.sets != null && activity.sets! > 0) {
+      message += 'Weightlift sets: ${activity.sets}';
+    }
     if (activity.caloriesBurned != null && activity.caloriesBurned! > 0) {
       message +=
           'Calories: ${activity.caloriesBurned!.toStringAsFixed(0)} kcal\n';

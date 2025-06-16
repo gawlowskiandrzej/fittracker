@@ -11,8 +11,9 @@ class Activity {
   DateTime? endTime;
   double? caloriesBurned;
   String? activityName;
-
-
+  int? jumps;
+  int? reps;
+  int? sets;
 
   Activity({
     required this.id,
@@ -25,9 +26,12 @@ class Activity {
     required this.userId,
     required this.caloriesBurned,
     required this.activityName,
+    required this.jumps,
+    required this.reps,
+    required this.sets,
   });
 
-  Activity.empty(){
+  Activity.empty() {
     id = "-1";
   }
 
@@ -46,6 +50,9 @@ class Activity {
       durationMinutes: data['durationMinutes'].toDouble() ?? 0,
       startTime: (data['startTime'] as Timestamp).toDate(),
       endTime: (data['endTime'] as Timestamp).toDate(),
+      jumps: data['jumps'] ?? 0,
+      reps: data['reps'] ?? 0,
+      sets: data['sets'] ?? 0,
       activityName: activity,
     );
   }

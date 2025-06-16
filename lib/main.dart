@@ -9,9 +9,7 @@ import 'package:provider/provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
 
@@ -23,10 +21,7 @@ class MyApp extends StatelessWidget {
     return StreamProvider<MyUser>.value(
       initialData: MyUser(uid: "-1", email: "null"),
       value: AuthService().user,
-      child: MaterialApp(
-        theme: appTheme,
-        home: const Wrapper(),
-      ),
+      child: MaterialApp(theme: appTheme, home: const Wrapper()),
     );
   }
 }

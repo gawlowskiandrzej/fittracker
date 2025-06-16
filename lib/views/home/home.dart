@@ -24,7 +24,13 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('FitTracker'),
+        title: Row(
+          children: [
+            Image.asset('assets/FitTrackerLogo.png', height: 21),
+            SizedBox(width: 10),
+            const Text('FitTracker'),
+          ],
+        ),
         elevation: 0.0,
         actions: <Widget>[
           TextButton.icon(
