@@ -1,5 +1,6 @@
 import 'package:fittracker/models/activity.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:telephony/telephony.dart';
 
@@ -50,10 +51,40 @@ class _ActivitySummaryState extends State<ActivitySummary> {
       );
     }
 
+    if (widget.activity.steps != null && widget.activity.steps! > 0) {
+      statWidgets.add(_buildTile('Steps', '${widget.activity.steps}'));
+    }
+
+    if (widget.activity.jumps != null && widget.activity.jumps! > 0) {
+      statWidgets.add(
+        _buildTile('Rope jumps', '${widget.activity.jumps!.toInt()}'),
+      );
+    }
+
+    if (widget.activity.reps != null && widget.activity.reps! > 0) {
+      statWidgets.add(
+        _buildTile('Weightlift reps', '${widget.activity.reps!.toInt()}'),
+      );
+    }
+
+    if (widget.activity.sets != null && widget.activity.sets! > 0) {
+      statWidgets.add(
+        _buildTile('Weightlift sets', '${widget.activity.sets!.toInt()}'),
+      );
+    }
+
     statWidgets.add(
-      _buildTile('Start date', widget.activity.startTime.toString()),
+      _buildTile(
+        'Start date',
+        DateFormat('yyyy-MM-dd HH:mm:ss').format(widget.activity.startTime!),
+      ),
     );
-    statWidgets.add(_buildTile('End date', widget.activity.endTime.toString()));
+    statWidgets.add(
+      _buildTile(
+        'End date',
+        DateFormat('yyyy-MM-dd HH:mm:ss').format(widget.activity.endTime!),
+      ),
+    );
 
     return Scaffold(
       appBar: AppBar(title: const Text('Activity summary')),
@@ -120,16 +151,16 @@ class _ActivitySummaryState extends State<ActivitySummary> {
       message += 'Distance: ${activity.distanceKm!.toStringAsFixed(2)} km\n';
     }
     if (activity.steps != null && activity.steps! > 0) {
-      message += 'Steps: ${activity.steps}';
+      message += 'Steps: ${activity.steps}\n';
     }
     if (activity.jumps != null && activity.jumps! > 0) {
-      message += 'Rope jumps: ${activity.jumps}';
+      message += 'Rope jumps: ${activity.jumps!.toInt()}\n';
     }
     if (activity.reps != null && activity.reps! > 0) {
-      message += 'Weightlift reps: ${activity.reps}';
+      message += 'Weightlift reps: ${activity.reps!.toInt()}\n';
     }
     if (activity.sets != null && activity.sets! > 0) {
-      message += 'Weightlift sets: ${activity.sets}';
+      message += 'Weightlift sets: ${activity.sets!.toInt()}\n';
     }
     if (activity.caloriesBurned != null && activity.caloriesBurned! > 0) {
       message +=
@@ -137,8 +168,8 @@ class _ActivitySummaryState extends State<ActivitySummary> {
     }
 
     // Załóżmy, że endTime i startTime to DateTime, więc wyliczamy Duration
-    final duration = activity.endTime!.difference(activity.startTime!);
-    message += 'Overall activity time: ${duration.inMinutes}min';
+    //final duration = activity.endTime!.difference(activity.startTime!);
+    message += 'Overall activity time: ${activity.durationMinutes} min';
     print(message);
 
     await _sendSms(number, message);
